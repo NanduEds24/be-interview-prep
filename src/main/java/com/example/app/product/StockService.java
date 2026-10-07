@@ -1,5 +1,7 @@
 package com.example.app.product;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,8 @@ import org.springframework.web.server.ResponseStatusException;
  */
 @Service
 public class StockService {
+
+    private static final Logger log = LoggerFactory.getLogger(StockService.class);
 
     private final ProductRepository repository;
     private final Cache cache;
@@ -38,7 +42,11 @@ public class StockService {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void release(Long productId, int quantity) {
-        repository.incrementStock(productId, quantity);
+        if (repository.incrementStock(productId, quantity) == 0) {
+            // The product was deleted after the order was placed: nothing to return the stock to.
+            log.warn("Could not return {} units to product {}: product no longer exists", quantity, productId);
+            return;
+        }
         evictAfterCommit(productId);
     }
 
