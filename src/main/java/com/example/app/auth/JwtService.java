@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 public class JwtService {
 
     public static final Duration TOKEN_TTL = Duration.ofMinutes(15);
+    static final int MIN_SECRET_BYTES = 32;
 
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
 
@@ -30,7 +31,13 @@ public class JwtService {
             log.warn("JWT_SECRET is not set; using a random signing key. Set JWT_SECRET (32+ bytes) in production.");
             this.key = Jwts.SIG.HS256.key().build();
         } else {
-            this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+            byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
+            if (bytes.length < MIN_SECRET_BYTES) {
+                // HS256 needs a 256-bit key; fail with a clear message instead of a WeakKeyException stack trace.
+                throw new IllegalStateException("JWT_SECRET must be at least " + MIN_SECRET_BYTES
+                        + " bytes (it is " + bytes.length + ")");
+            }
+            this.key = Keys.hmacShaKeyFor(bytes);
         }
     }
 
