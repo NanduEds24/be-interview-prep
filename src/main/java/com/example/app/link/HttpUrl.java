@@ -37,7 +37,9 @@ public @interface HttpUrl {
             try {
                 URI uri = new URI(value);
                 String scheme = uri.getScheme();
-                return ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) && uri.getHost() != null;
+                // getAuthority, not getHost: URI returns no host for valid-to-redirect names with "_" or
+                // non-ASCII letters (e.g. my_service.example.com, bücher.de).
+                return ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) && uri.getAuthority() != null;
             } catch (URISyntaxException e) {
                 return false;
             }

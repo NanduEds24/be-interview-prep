@@ -74,6 +74,23 @@ class ShortLinkControllerTest {
     }
 
     @Test
+    void unusualButValidHostsAreAccepted() throws Exception {
+        for (String url : new String[] {"https://my_service.example.com/x", "https://bücher.de/"}) {
+            String code = shorten(url);
+            mockMvc.perform(get("/r/{code}", code)).andExpect(status().isFound());
+        }
+    }
+
+    @Test
+    void nonAsciiPathIsPercentEncodedInLocation() throws Exception {
+        String code = shorten("https://example.com/café");
+
+        mockMvc.perform(get("/r/{code}", code))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "https://example.com/caf%C3%A9"));
+    }
+
+    @Test
     void missingOrTooLongUrlReturns400() throws Exception {
         mockMvc.perform(post("/api/links").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest())

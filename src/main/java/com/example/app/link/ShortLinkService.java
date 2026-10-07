@@ -33,11 +33,9 @@ public class ShortLinkService {
      */
     @Transactional
     public String resolve(String code, boolean countVisit) {
-        if (countVisit && repository.incrementVisitCount(code, Instant.now()) == 1) {
-            return find(code).getOriginalUrl();
-        }
-        ShortLink link = find(code); // nothing counted: unknown (404) or expired (410), or not counting
-        if (link.isExpired()) {
+        ShortLink link = find(code);
+        // The UPDATE re-checks expiry itself, so a link that expires right after the check isn't counted.
+        if (link.isExpired() || (countVisit && repository.incrementVisitCount(code, Instant.now()) == 0)) {
             throw new ResponseStatusException(HttpStatus.GONE, "Short link " + code + " has expired");
         }
         return link.getOriginalUrl();
