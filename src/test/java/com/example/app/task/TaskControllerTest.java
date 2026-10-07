@@ -133,7 +133,8 @@ class TaskControllerTest {
 
         mockMvc.perform(put("/api/tasks/{id}", id).contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.detail").value("dueDate cannot be moved into the past"));
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.errors.dueDate").value("dueDate cannot be moved into the past"));
     }
 
     @Test
