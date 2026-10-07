@@ -1,6 +1,10 @@
 package com.example.app.task;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import org.springframework.http.ProblemDetail;
+import org.springframework.web.ErrorResponseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +41,14 @@ public class TaskService {
     @Transactional
     public TaskResponse update(Long id, TaskRequest request) {
         Task task = find(id);
-        task.update(request.title(), request.description(), request.status(), request.dueDate());
+        LocalDate dueDate = request.dueDate();
+        if (dueDate != null && dueDate.isBefore(LocalDate.now()) && !dueDate.equals(task.getDueDate())) {
+            // Same shape as a Bean Validation failure, so clients read errors.dueDate on create and update alike.
+            ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed");
+            problem.setProperty("errors", Map.of("dueDate", "dueDate cannot be moved into the past"));
+            throw new ErrorResponseException(HttpStatus.BAD_REQUEST, problem, null);
+        }
+        task.update(request.title(), request.description(), request.status(), dueDate);
         return TaskResponse.from(task);
     }
 

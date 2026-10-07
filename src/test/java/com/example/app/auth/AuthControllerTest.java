@@ -190,4 +190,42 @@ class AuthControllerTest {
                         .content("{\"email\": \"ivan@test.com\", \"password\": \"" + password72 + "wrong\"}"))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void blankLoginReturnsFieldErrors() throws Exception {
+        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"email\": \"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.email").value("email is required"))
+                .andExpect(jsonPath("$.errors.password").value("password is required"));
+    }
+
+    @Test
+    void profileOfDeletedUserReturns404() throws Exception {
+        register("gone@test.com", "password123");
+        String token = login("gone@test.com", "password123");
+        repository.delete(repository.findByEmail("gone@test.com").orElseThrow());
+
+        mockMvc.perform(get("/api/users/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.detail").value("User gone@test.com not found"));
+    }
+
+    @Test
+    void swaggerShowsPublicEndpointsWithoutTokenRequirement() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paths['/api/auth/login'].post.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/api/auth/register'].post.security").isEmpty())
+                .andExpect(jsonPath("$.paths['/r/{code}'].get.security").isEmpty())
+                .andExpect(jsonPath("$.security[0].bearerAuth").exists());
+    }
+
+    @Test
+    void adminSeederNeverPromotesAnExistingUser() throws Exception {
+        register("taken@test.com", "password123");
+
+        new AdminSeeder(repository, passwordEncoder, "taken@test.com", "admin-pass-123").run(null);
+
+        assertThat(repository.findByEmail("taken@test.com").orElseThrow().getRole()).isEqualTo(Role.USER);
+    }
 }
