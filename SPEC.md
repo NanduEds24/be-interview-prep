@@ -106,7 +106,10 @@ edit the database, including roles). Earlier tests get `@WithMockUser`.
   Custom `AuthenticationEntryPoint` (401) and `AccessDeniedHandler` (403) write problem JSON.
 - Q4: page size > 100 is clamped to 100; sort field must be one of the Product fields, else 400.
   Filters built with JPA Specifications so any combination is one query. `@Cacheable("products")`
-  on get-by-id, `@CachePut` on update, `@CacheEvict` on delete (and on stock changes from Q5).
+  on get-by-id, `@CacheEvict` on update and delete (evict, not `@CachePut`, so a rolled-back update can't
+  leave an uncommitted value in the cache; the cache proxy runs outside the transaction so eviction
+  happens after commit), and on stock changes from Q5. Category filter is an exact match so its index
+  can be used.
 - Q5: in one transaction, for each item (sorted by productId to avoid deadlocks) run
   `UPDATE product SET stock = stock - :q WHERE id = :id AND stock >= :q`; 0 rows updated -> throw
   409, which rolls back every earlier decrement. Idempotency: client sends `Idempotency-Key` header
