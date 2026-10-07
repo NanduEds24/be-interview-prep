@@ -1,6 +1,7 @@
 package com.example.app.link;
 
 import java.security.SecureRandom;
+import java.time.Instant;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,14 +27,19 @@ public class ShortLinkService {
         return repository.save(new ShortLink(newCode(), request.url(), request.expiresAt()));
     }
 
-    /** Returns the original URL and counts the visit; 404 for unknown codes, 410 for expired ones. */
+    /**
+     * Returns the original URL; 404 for unknown codes, 410 for expired ones. countVisit is false for HEAD
+     * requests (link checkers, chat previews), which shouldn't inflate the stats.
+     */
     @Transactional
-    public String resolve(String code) {
-        ShortLink link = find(code);
+    public String resolve(String code, boolean countVisit) {
+        if (countVisit && repository.incrementVisitCount(code, Instant.now()) == 1) {
+            return find(code).getOriginalUrl();
+        }
+        ShortLink link = find(code); // nothing counted: unknown (404) or expired (410), or not counting
         if (link.isExpired()) {
             throw new ResponseStatusException(HttpStatus.GONE, "Short link " + code + " has expired");
         }
-        repository.incrementVisitCount(code);
         return link.getOriginalUrl();
     }
 
