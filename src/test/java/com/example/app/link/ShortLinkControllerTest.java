@@ -2,6 +2,7 @@ package com.example.app.link;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -43,7 +44,7 @@ class ShortLinkControllerTest {
     @Test
     void shortensRedirectsAndCountsVisits() throws Exception {
         String code = shorten("https://spring.io/projects");
-        assertThat(code).matches("[A-Za-z0-9]{1,8}");
+        assertThat(code).matches("[A-Za-z0-9]{7}");
 
         mockMvc.perform(get("/r/{code}", code))
                 .andExpect(status().isFound())
@@ -64,12 +65,31 @@ class ShortLinkControllerTest {
 
     @Test
     void invalidUrlReturns400() throws Exception {
-        mockMvc.perform(post("/api/links").contentType(MediaType.APPLICATION_JSON).content("{\"url\": \"not a url\"}"))
+        // Includes URLs java.net.URL accepts but java.net.URI rejects: they used to pass and then 500 on redirect.
+        for (String url : new String[] {"not a url", "ftp://example.com", "https://example.com/a b", "https://example.com/?q={x}"}) {
+            mockMvc.perform(post("/api/links").contentType(MediaType.APPLICATION_JSON).content("{\"url\": \"" + url + "\"}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.errors.url").value("url must be a valid http or https URL"));
+        }
+    }
+
+    @Test
+    void missingOrTooLongUrlReturns400() throws Exception {
+        mockMvc.perform(post("/api/links").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors.url").exists());
-        mockMvc.perform(post("/api/links").contentType(MediaType.APPLICATION_JSON).content("{\"url\": \"ftp://example.com\"}"))
+                .andExpect(jsonPath("$.errors.url").value("url is required"));
+        String longUrl = "https://example.com/" + "a".repeat(2048);
+        mockMvc.perform(post("/api/links").contentType(MediaType.APPLICATION_JSON).content("{\"url\": \"" + longUrl + "\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors.url").value("url must start with http:// or https://"));
+                .andExpect(jsonPath("$.errors.url").value("url must be at most 2048 characters"));
+    }
+
+    @Test
+    void headRequestsRedirectWithoutCountingVisits() throws Exception {
+        String code = shorten("https://example.com");
+
+        mockMvc.perform(head("/r/{code}", code)).andExpect(status().isFound());
+        mockMvc.perform(get("/api/links/{code}/stats", code)).andExpect(jsonPath("$.visitCount").value(0));
     }
 
     @Test
