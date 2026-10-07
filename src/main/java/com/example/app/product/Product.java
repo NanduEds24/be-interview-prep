@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -39,6 +40,13 @@ public class Product {
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
+    /**
+     * Optimistic lock: an admin update that read the product before an order changed its stock fails
+     * (409) instead of silently writing the old stock back. The stock UPDATE queries bump it too.
+     */
+    @Version
+    private long version;
 
     protected Product() {}
 
