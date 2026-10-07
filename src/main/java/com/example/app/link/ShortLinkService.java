@@ -47,8 +47,10 @@ public class ShortLinkService {
     }
 
     private ShortLink find(String code) {
-        return repository.findByCode(code)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Short link " + code + " not found"));
+        return repository
+                .findByCode(code)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Short link " + code + " not found"));
     }
 
     // 62^7 (about 3.5 trillion) codes make a collision rare; the unique column is the final guard.

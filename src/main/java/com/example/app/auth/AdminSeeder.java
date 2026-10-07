@@ -20,8 +20,11 @@ public class AdminSeeder implements ApplicationRunner {
     private final String email;
     private final String password;
 
-    public AdminSeeder(AppUserRepository repository, PasswordEncoder passwordEncoder,
-            @Value("${app.admin.email:}") String email, @Value("${app.admin.password:}") String password) {
+    public AdminSeeder(
+            AppUserRepository repository,
+            PasswordEncoder passwordEncoder,
+            @Value("${app.admin.email:}") String email,
+            @Value("${app.admin.password:}") String password) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.email = email;
@@ -38,17 +41,22 @@ public class AdminSeeder implements ApplicationRunner {
             throw new IllegalStateException("ADMIN_PASSWORD must be at least 8 characters and at most 72 bytes");
         }
         String normalized = UserService.normalize(email);
-        repository.findByEmail(normalized).ifPresentOrElse(
-                // Never promote an existing account: whoever registered it chose its password.
-                existing -> {
-                    if (existing.getRole() != Role.ADMIN) {
-                        log.warn("ADMIN_EMAIL {} is already registered as {}; no admin was created", normalized,
-                                existing.getRole());
-                    } else {
-                        log.info("Admin {} already exists; ADMIN_PASSWORD is only used when it is first created",
-                                normalized);
-                    }
-                },
-                () -> repository.save(new AppUser(normalized, passwordEncoder.encode(password), Role.ADMIN)));
+        repository
+                .findByEmail(normalized)
+                .ifPresentOrElse(
+                        // Never promote an existing account: whoever registered it chose its password.
+                        existing -> {
+                            if (existing.getRole() != Role.ADMIN) {
+                                log.warn(
+                                        "ADMIN_EMAIL {} is already registered as {}; no admin was created",
+                                        normalized,
+                                        existing.getRole());
+                            } else {
+                                log.info(
+                                        "Admin {} already exists; ADMIN_PASSWORD is only used when it is first created",
+                                        normalized);
+                            }
+                        },
+                        () -> repository.save(new AppUser(normalized, passwordEncoder.encode(password), Role.ADMIN)));
     }
 }

@@ -9,7 +9,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 
 /** With H2_CONSOLE_ENABLED=true the console must actually open (no token) and be allowed in a frame. */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = "spring.h2.console.enabled=true")
 class H2ConsoleEnabledTest {
 

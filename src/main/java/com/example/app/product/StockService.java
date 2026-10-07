@@ -32,10 +32,14 @@ public class StockService {
     @Transactional(propagation = Propagation.MANDATORY)
     public void reserve(Long productId, int quantity) {
         if (repository.decrementStock(productId, quantity) == 0) {
-            Product product = repository.findById(productId).orElseThrow(() ->
-                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Product " + productId + " not found"));
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Insufficient stock for product " + productId
-                    + " (" + product.getName() + "): requested " + quantity + ", available " + product.getStock());
+            Product product = repository
+                    .findById(productId)
+                    .orElseThrow(() ->
+                            new ResponseStatusException(HttpStatus.NOT_FOUND, "Product " + productId + " not found"));
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Insufficient stock for product " + productId + " (" + product.getName() + "): requested "
+                            + quantity + ", available " + product.getStock());
         }
         evictAfterCommit(productId);
     }

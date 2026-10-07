@@ -37,6 +37,18 @@ In Swagger UI: call `POST /api/auth/login`, copy `token`, click **Authorize** an
 .\mvnw.cmd test
 ```
 
+### Quality checks
+`.\mvnw.cmd verify` runs everything CI runs on each pull request:
+
+| Check | Tool | Fix or report |
+|---|---|---|
+| Tests + coverage floor (90% line, 75% branch) | JUnit, JaCoCo | `target/site/jacoco/index.html` |
+| Formatting | Spotless (palantir-java-format) | `.\mvnw.cmd spotless:apply` |
+| Bugs and security issues | SpotBugs + FindSecBugs | false positives go in `spotbugs-exclude.xml`, with a reason |
+| Secrets in git history | gitleaks (CI only) | |
+
+Optional pre-commit hook that checks formatting: `git config core.hooksPath .githooks`.
+
 ## Questions
 | # | Question | PR link |
 |---|---|---|

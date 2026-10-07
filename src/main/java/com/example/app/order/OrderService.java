@@ -57,8 +57,9 @@ public class OrderService {
         }
         items.forEach((productId, quantity) -> {
             if (quantity > MAX_QUANTITY_PER_PRODUCT) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Total quantity for product " + productId
-                        + " must be at most " + MAX_QUANTITY_PER_PRODUCT);
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Total quantity for product " + productId + " must be at most " + MAX_QUANTITY_PER_PRODUCT);
             }
         });
         String fingerprint = sha256(items.toString());
@@ -74,8 +75,10 @@ public class OrderService {
             // Another request with the same key got the unique index first. Our transaction (and its stock
             // reservations) rolled back. If that request committed, return its order; if it is still running,
             // tell the client to retry shortly instead of guessing.
-            return findExisting(customerEmail, key, fingerprint).orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.CONFLICT, "A request with Idempotency-Key " + key + " is still being processed; retry shortly"));
+            return findExisting(customerEmail, key, fingerprint)
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.CONFLICT,
+                            "A request with Idempotency-Key " + key + " is still being processed; retry shortly"));
         }
     }
 
@@ -95,7 +98,8 @@ public class OrderService {
         });
     }
 
-    private PlaceOrderResult create(String customerEmail, String key, String fingerprint, SortedMap<Long, Integer> items) {
+    private PlaceOrderResult create(
+            String customerEmail, String key, String fingerprint, SortedMap<Long, Integer> items) {
         CustomerOrder order = new CustomerOrder(customerEmail, key, fingerprint);
         items.forEach(order::addItem);
         // Insert first: this claims the idempotency key, so a concurrent duplicate fails fast on the unique constraint.
@@ -107,10 +111,12 @@ public class OrderService {
     }
 
     private Optional<PlaceOrderResult> findExisting(String customerEmail, String key, String fingerprint) {
-        return readOnlyTx.execute(status -> repository.findByCustomerEmailAndIdempotencyKey(customerEmail, key)
+        return readOnlyTx.execute(status -> repository
+                .findByCustomerEmailAndIdempotencyKey(customerEmail, key)
                 .map(order -> {
                     if (!order.getRequestFingerprint().equals(fingerprint)) {
-                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        throw new ResponseStatusException(
+                                HttpStatus.CONFLICT,
                                 "Idempotency-Key " + key + " was already used for a different order");
                     }
                     return new PlaceOrderResult(OrderResponse.from(order), false);
@@ -119,15 +125,16 @@ public class OrderService {
 
     /** Orders of other customers are reported as not found, so ids can't be probed. */
     private CustomerOrder find(String customerEmail, Long id) {
-        return repository.findByIdAndCustomerEmail(id, customerEmail)
+        return repository
+                .findByIdAndCustomerEmail(id, customerEmail)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order " + id + " not found"));
     }
 
     /** The key is used exactly as sent (no trimming), so two different keys never collide. */
     private static String validateKey(String key) {
         if (key == null || key.isBlank() || key.length() > MAX_KEY_LENGTH) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Idempotency-Key header must be 1 to " + MAX_KEY_LENGTH + " characters");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Idempotency-Key header must be 1 to " + MAX_KEY_LENGTH + " characters");
         }
         return key;
     }

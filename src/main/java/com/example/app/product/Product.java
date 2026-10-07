@@ -13,10 +13,11 @@ import java.time.Instant;
 
 // Indexes on the filter columns keep the list query fast as the catalog grows.
 @Entity
-@Table(indexes = {
-        @Index(name = "idx_product_category", columnList = "category"),
-        @Index(name = "idx_product_price", columnList = "price")
-})
+@Table(
+        indexes = {
+            @Index(name = "idx_product_category", columnList = "category"),
+            @Index(name = "idx_product_price", columnList = "price")
+        })
 public class Product {
 
     @Id
@@ -63,11 +64,31 @@ public class Product {
         this.rating = rating;
     }
 
-    public Long getId() { return id; }
-    public String getName() { return name; }
-    public String getCategory() { return category; }
-    public BigDecimal getPrice() { return price; }
-    public int getStock() { return stock; }
-    public double getRating() { return rating; }
-    public Instant getCreatedAt() { return createdAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public double getRating() {
+        return rating;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 }

@@ -18,7 +18,9 @@ public class ProductSeeder implements ApplicationRunner {
     static final int COUNT = 100;
     private static final String[] CATEGORIES = {"Books", "Electronics", "Home", "Sports", "Toys"};
     private static final String[] ADJECTIVES = {"Classic", "Pro", "Smart", "Compact", "Deluxe"};
-    private static final String[] NOUNS = {"Lamp", "Speaker", "Backpack", "Notebook", "Bottle", "Puzzle", "Headphones", "Chair"};
+    private static final String[] NOUNS = {
+        "Lamp", "Speaker", "Backpack", "Notebook", "Bottle", "Puzzle", "Headphones", "Chair"
+    };
 
     private final ProductRepository repository;
 
@@ -35,11 +37,17 @@ public class ProductSeeder implements ApplicationRunner {
         Instant now = Instant.now();
         List<Product> products = new ArrayList<>();
         for (int i = 1; i <= COUNT; i++) {
-            String name = ADJECTIVES[random.nextInt(ADJECTIVES.length)] + " " + NOUNS[random.nextInt(NOUNS.length)] + " " + i;
+            String name =
+                    ADJECTIVES[random.nextInt(ADJECTIVES.length)] + " " + NOUNS[random.nextInt(NOUNS.length)] + " " + i;
             BigDecimal price = BigDecimal.valueOf(5 + random.nextDouble() * 495).setScale(2, RoundingMode.HALF_UP);
             int stock = random.nextInt(5) == 0 ? 0 : random.nextInt(200);
             double rating = Math.round(random.nextDouble() * 50) / 10.0;
-            products.add(new Product(name, CATEGORIES[i % CATEGORIES.length], price, stock, rating,
+            products.add(new Product(
+                    name,
+                    CATEGORIES[i % CATEGORIES.length],
+                    price,
+                    stock,
+                    rating,
                     now.minus(COUNT - i, ChronoUnit.DAYS)));
         }
         repository.saveAll(products);

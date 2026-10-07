@@ -1,0 +1,16 @@
+#!/bin/sh
+# Fast local check before each commit: Java formatting (the full checks run in CI).
+# Enable once per clone:  git config core.hooksPath .githooks     Skip once:  git commit --no-verify
+# Fix problems with:      .\mvnw.cmd spotless:apply
+# Note: Spotless checks the files as they are on disk, not only what is staged. CI checks what was committed.
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*) mvn=./mvnw.cmd ;;
+  *) mvn=./mvnw ;;
+esac
+if git diff --name-only -- '*.java' | grep -q .; then
+  echo "pre-commit: some .java files have unstaged changes; the formatting check sees those too." >&2
+fi
+if ! "$mvn" -q -B spotless:check; then
+  echo "pre-commit: formatting check failed. Run spotless:apply, then git add the files and commit again." >&2
+  exit 1
+fi

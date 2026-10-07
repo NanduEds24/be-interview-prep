@@ -29,8 +29,12 @@ final class ProductSpecs {
         }
         if (filter.q() != null && !filter.q().isBlank()) {
             // Escape LIKE wildcards so "%" or "_" in the search text match literally.
-            String text = filter.q().trim().toLowerCase(Locale.ROOT)
-                    .replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+            String text = filter.q()
+                    .trim()
+                    .toLowerCase(Locale.ROOT)
+                    .replace("\\", "\\\\")
+                    .replace("%", "\\%")
+                    .replace("_", "\\_");
             String pattern = "%" + text + "%";
             specs.add((root, query, cb) -> cb.like(cb.lower(root.get("name")), pattern, '\\'));
         }

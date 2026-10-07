@@ -28,7 +28,8 @@ public class TaskController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TaskResponse create(@Validated({Default.class, TaskRequest.OnCreate.class}) @RequestBody TaskRequest request) {
+    public TaskResponse create(
+            @Validated({Default.class, TaskRequest.OnCreate.class}) @RequestBody TaskRequest request) {
         return service.create(request);
     }
 

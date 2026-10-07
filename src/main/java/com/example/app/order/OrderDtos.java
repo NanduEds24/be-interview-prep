@@ -20,9 +20,11 @@ public final class OrderDtos {
 
     public record ItemRequest(
             @NotNull(message = "productId is required") Long productId,
+
             @NotNull(message = "quantity is required")
             @Min(value = 1, message = "quantity must be at least 1")
-            @Max(value = 1000, message = "quantity must be at most 1000") Integer quantity) {}
+            @Max(value = 1000, message = "quantity must be at most 1000")
+            Integer quantity) {}
 
     public record ItemResponse(Long productId, int quantity) {}
 
@@ -30,7 +32,8 @@ public final class OrderDtos {
 
         static OrderResponse from(CustomerOrder order) {
             List<ItemResponse> items = order.getItems().stream()
-                    .map(i -> new ItemResponse(i.getProductId(), i.getQuantity())).toList();
+                    .map(i -> new ItemResponse(i.getProductId(), i.getQuantity()))
+                    .toList();
             return new OrderResponse(order.getId(), order.getStatus(), items, order.getCreatedAt());
         }
     }

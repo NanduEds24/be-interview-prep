@@ -32,12 +32,15 @@ class ShortLinkControllerTest {
     private ShortLinkRepository repository;
 
     private String shorten(String url) throws Exception {
-        String json = mockMvc.perform(post("/api/links").contentType(MediaType.APPLICATION_JSON)
+        String json = mockMvc.perform(post("/api/links")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"url\": \"" + url + "\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.code").isString())
                 .andExpect(jsonPath("$.shortUrl").isString())
-                .andReturn().getResponse().getContentAsString();
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
         return JsonPath.read(json, "$.code");
     }
 
@@ -66,8 +69,12 @@ class ShortLinkControllerTest {
     @Test
     void invalidUrlReturns400() throws Exception {
         // Includes URLs java.net.URL accepts but java.net.URI rejects: they used to pass and then 500 on redirect.
-        for (String url : new String[] {"not a url", "ftp://example.com", "https://example.com/a b", "https://example.com/?q={x}"}) {
-            mockMvc.perform(post("/api/links").contentType(MediaType.APPLICATION_JSON).content("{\"url\": \"" + url + "\"}"))
+        for (String url :
+                new String[] {"not a url", "ftp://example.com", "https://example.com/a b", "https://example.com/?q={x}"
+                }) {
+            mockMvc.perform(post("/api/links")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"url\": \"" + url + "\"}"))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.errors.url").value("url must be a valid http or https URL"));
         }
@@ -92,11 +99,15 @@ class ShortLinkControllerTest {
 
     @Test
     void missingOrTooLongUrlReturns400() throws Exception {
-        mockMvc.perform(post("/api/links").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mockMvc.perform(post("/api/links")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.url").value("url is required"));
         String longUrl = "https://example.com/" + "a".repeat(2048);
-        mockMvc.perform(post("/api/links").contentType(MediaType.APPLICATION_JSON).content("{\"url\": \"" + longUrl + "\"}"))
+        mockMvc.perform(post("/api/links")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"url\": \"" + longUrl + "\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.url").value("url must be at most 2048 characters"));
     }
@@ -106,12 +117,14 @@ class ShortLinkControllerTest {
         String code = shorten("https://example.com");
 
         mockMvc.perform(head("/r/{code}", code)).andExpect(status().isFound());
-        mockMvc.perform(get("/api/links/{code}/stats", code)).andExpect(jsonPath("$.visitCount").value(0));
+        mockMvc.perform(get("/api/links/{code}/stats", code))
+                .andExpect(jsonPath("$.visitCount").value(0));
     }
 
     @Test
     void pastExpiryReturns400() throws Exception {
-        mockMvc.perform(post("/api/links").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/links")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"url\": \"https://example.com\", \"expiresAt\": \"2000-01-01T00:00:00Z\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.expiresAt").value("expiresAt must be in the future"));
@@ -127,11 +140,13 @@ class ShortLinkControllerTest {
 
     @Test
     void expiredCodeReturns410AndIsNotCounted() throws Exception {
-        repository.save(new ShortLink("old1", "https://example.com", Instant.now().minusSeconds(60)));
+        repository.save(
+                new ShortLink("old1", "https://example.com", Instant.now().minusSeconds(60)));
 
         mockMvc.perform(get("/r/old1"))
                 .andExpect(status().isGone())
                 .andExpect(jsonPath("$.status").value(410));
-        mockMvc.perform(get("/api/links/old1/stats")).andExpect(jsonPath("$.visitCount").value(0));
+        mockMvc.perform(get("/api/links/old1/stats"))
+                .andExpect(jsonPath("$.visitCount").value(0));
     }
 }

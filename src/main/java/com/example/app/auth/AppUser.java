@@ -38,9 +38,23 @@ public class AppUser {
         this.createdAt = Instant.now();
     }
 
-    public Long getId() { return id; }
-    public String getEmail() { return email; }
-    public String getPasswordHash() { return passwordHash; }
-    public Role getRole() { return role; }
-    public Instant getCreatedAt() { return createdAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 }

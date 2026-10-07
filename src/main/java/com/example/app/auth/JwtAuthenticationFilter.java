@@ -36,7 +36,8 @@ class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 Claims claims = jwtService.parse(header.substring(7));
                 var authority = new SimpleGrantedAuthority("ROLE_" + claims.get("role", String.class));
-                var authentication = new UsernamePasswordAuthenticationToken(claims.getSubject(), null, List.of(authority));
+                var authentication =
+                        new UsernamePasswordAuthenticationToken(claims.getSubject(), null, List.of(authority));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (JwtException | IllegalArgumentException e) {
                 SecurityContextHolder.clearContext();

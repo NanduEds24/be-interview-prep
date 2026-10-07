@@ -30,8 +30,9 @@ jobs:
           distribution: temurin
           java-version: ${{ matrix.java }}
           cache: maven
-      - name: mvn verify (compile + all tests)
-        run: ./mvnw -B -ntp verify
+      - name: mvn verify (tests, coverage floor, Spotless formatting, SpotBugs + FindSecBugs)
+        # Static checks (Spotless, SpotBugs) give the same result on any JDK, so they run on 21 only.
+        run: ./mvnw -B -ntp verify ${{ matrix.java != '21' && '-Dspotless.check.skip=true -Dspotbugs.skip=true' || '' }}
 
   secrets:
     name: Secret scan (gitleaks)

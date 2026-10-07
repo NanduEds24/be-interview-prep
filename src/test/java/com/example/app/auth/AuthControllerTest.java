@@ -37,7 +37,8 @@ class AuthControllerTest {
     private JwtService jwtService;
 
     private void register(String email, String password) throws Exception {
-        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\": \"%s\", \"password\": \"%s\"}".formatted(email, password)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.role").value("USER"))
@@ -46,12 +47,15 @@ class AuthControllerTest {
     }
 
     private String login(String email, String password) throws Exception {
-        String json = mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+        String json = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\": \"%s\", \"password\": \"%s\"}".formatted(email, password)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
                 .andExpect(jsonPath("$.expiresIn").value(900))
-                .andReturn().getResponse().getContentAsString();
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
         return JsonPath.read(json, "$.token");
     }
 
@@ -133,7 +137,8 @@ class AuthControllerTest {
     void wrongPasswordReturns401WithoutHint() throws Exception {
         register("frank@test.com", "password123");
 
-        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\": \"frank@test.com\", \"password\": \"wrong-password\"}"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.detail").value("Invalid email or password"));
@@ -143,7 +148,8 @@ class AuthControllerTest {
     void duplicateEmailReturns409() throws Exception {
         register("gina@test.com", "password123");
 
-        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\": \"GINA@test.com\", \"password\": \"password123\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409));
@@ -151,7 +157,8 @@ class AuthControllerTest {
 
     @Test
     void invalidRegistrationReturnsFieldErrors() throws Exception {
-        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\": \"not-an-email\", \"password\": \"short\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.email").value("email must be a valid email address"))
@@ -162,20 +169,23 @@ class AuthControllerTest {
     void passwordOver72BytesReturns400NotServerError() throws Exception {
         String emojiPassword = "😀".repeat(30); // 60 characters, but 120 bytes in UTF-8
 
-        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\": \"emoji@test.com\", \"password\": \"" + emojiPassword + "\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.password").value("password must be at most 72 bytes"));
 
         register("hana@test.com", "password123");
-        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\": \"hana@test.com\", \"password\": \"" + emojiPassword + "\"}"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void longAsciiPasswordGetsOneStableMessage() throws Exception {
-        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\": \"jo@test.com\", \"password\": \"" + "a".repeat(80) + "\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.password").value("password must be at most 72 bytes"));
@@ -186,14 +196,17 @@ class AuthControllerTest {
         String password72 = "a".repeat(72);
         register("ivan@test.com", password72);
 
-        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\": \"ivan@test.com\", \"password\": \"" + password72 + "wrong\"}"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void blankLoginReturnsFieldErrors() throws Exception {
-        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"email\": \"\"}"))
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.email").value("email is required"))
                 .andExpect(jsonPath("$.errors.password").value("password is required"));
@@ -215,7 +228,8 @@ class AuthControllerTest {
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.paths['/api/auth/login'].post.security").isEmpty())
-                .andExpect(jsonPath("$.paths['/api/auth/register'].post.security").isEmpty())
+                .andExpect(
+                        jsonPath("$.paths['/api/auth/register'].post.security").isEmpty())
                 .andExpect(jsonPath("$.paths['/r/{code}'].get.security").isEmpty())
                 .andExpect(jsonPath("$.security[0].bearerAuth").exists());
     }
@@ -226,6 +240,7 @@ class AuthControllerTest {
 
         new AdminSeeder(repository, passwordEncoder, "taken@test.com", "admin-pass-123").run(null);
 
-        assertThat(repository.findByEmail("taken@test.com").orElseThrow().getRole()).isEqualTo(Role.USER);
+        assertThat(repository.findByEmail("taken@test.com").orElseThrow().getRole())
+                .isEqualTo(Role.USER);
     }
 }

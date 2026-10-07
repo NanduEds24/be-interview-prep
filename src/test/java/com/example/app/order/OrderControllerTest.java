@@ -41,14 +41,17 @@ class OrderControllerTest {
 
     @BeforeEach
     void createProduct() {
-        productId = productRepository.save(new Product("Order Lamp", "Home", new BigDecimal("10.00"), 5, 4.0,
-                Instant.now())).getId();
+        productId = productRepository
+                .save(new Product("Order Lamp", "Home", new BigDecimal("10.00"), 5, 4.0, Instant.now()))
+                .getId();
     }
 
     private ResultActions order(String key, long product, int quantity) throws Exception {
         String body = "{\"items\": [{\"productId\": %d, \"quantity\": %d}]}".formatted(product, quantity);
-        return mockMvc.perform(post("/api/orders").header("Idempotency-Key", key)
-                .contentType(MediaType.APPLICATION_JSON).content(body));
+        return mockMvc.perform(post("/api/orders")
+                .header("Idempotency-Key", key)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
     }
 
     private int stock() {
@@ -68,10 +71,16 @@ class OrderControllerTest {
 
     @Test
     void retryWithSameKeyReturnsSameOrderOnce() throws Exception {
-        String first = order("retry-key", productId, 2).andExpect(status().isCreated())
-                .andReturn().getResponse().getContentAsString();
-        String second = order("retry-key", productId, 2).andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
+        String first = order("retry-key", productId, 2)
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        String second = order("retry-key", productId, 2)
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
         assertThat((Integer) JsonPath.read(second, "$.id")).isEqualTo(JsonPath.read(first, "$.id"));
         assertThat((String) JsonPath.read(second, "$.createdAt")).isEqualTo(JsonPath.read(first, "$.createdAt"));
@@ -84,7 +93,8 @@ class OrderControllerTest {
 
         order("reused-key", productId, 2)
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.detail").value("Idempotency-Key reused-key was already used for a different order"));
+                .andExpect(jsonPath("$.detail")
+                        .value("Idempotency-Key reused-key was already used for a different order"));
     }
 
     @Test
@@ -92,8 +102,9 @@ class OrderControllerTest {
         order("too-many", productId, 6)
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409))
-                .andExpect(jsonPath("$.detail").value(
-                        "Insufficient stock for product " + productId + " (Order Lamp): requested 6, available 5"));
+                .andExpect(jsonPath("$.detail")
+                        .value("Insufficient stock for product " + productId
+                                + " (Order Lamp): requested 6, available 5"));
     }
 
     @Test
@@ -105,7 +116,8 @@ class OrderControllerTest {
 
     @Test
     void missingOrBlankKeyReturns400() throws Exception {
-        mockMvc.perform(post("/api/orders").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"items\": [{\"productId\": 1, \"quantity\": 1}]}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400));
@@ -114,7 +126,9 @@ class OrderControllerTest {
 
     @Test
     void invalidItemsReturnFieldErrors() throws Exception {
-        mockMvc.perform(post("/api/orders").header("Idempotency-Key", "bad").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/orders")
+                        .header("Idempotency-Key", "bad")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"items\": []}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.items").value("items must contain at least one item"));
@@ -126,15 +140,20 @@ class OrderControllerTest {
     @Test
     void repeatedProductLinesCannotExceedTheQuantityLimit() throws Exception {
         String line = "{\"productId\": %d, \"quantity\": 1000}".formatted(productId);
-        mockMvc.perform(post("/api/orders").header("Idempotency-Key", "split").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/orders")
+                        .header("Idempotency-Key", "split")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"items\": [" + line + "," + line + "]}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.detail").value("Total quantity for product " + productId + " must be at most 1000"));
+                .andExpect(jsonPath("$.detail")
+                        .value("Total quantity for product " + productId + " must be at most 1000"));
     }
 
     @Test
     void nonNumericOrderIdReturns400() throws Exception {
-        mockMvc.perform(get("/api/orders/abc")).andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
+        mockMvc.perform(get("/api/orders/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
         mockMvc.perform(post("/api/orders/abc/cancel")).andExpect(status().isBadRequest());
     }
 
@@ -153,10 +172,12 @@ class OrderControllerTest {
         mockMvc.perform(get("/api/orders/999999")).andExpect(status().isNotFound());
         mockMvc.perform(post("/api/orders/999999/cancel")).andExpect(status().isNotFound());
 
-        String json = order("alice-order", productId, 1).andReturn().getResponse().getContentAsString();
+        String json =
+                order("alice-order", productId, 1).andReturn().getResponse().getContentAsString();
         int id = JsonPath.read(json, "$.id");
         mockMvc.perform(get("/api/orders/{id}", id).with(user("bob@test.com"))).andExpect(status().isNotFound());
-        mockMvc.perform(post("/api/orders/{id}/cancel", id).with(user("bob@test.com"))).andExpect(status().isNotFound());
+        mockMvc.perform(post("/api/orders/{id}/cancel", id).with(user("bob@test.com")))
+                .andExpect(status().isNotFound());
     }
 
     @Test

@@ -3,11 +3,11 @@ package com.example.app.task;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import org.springframework.http.ProblemDetail;
-import org.springframework.web.ErrorResponseException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.ErrorResponseException;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -27,9 +27,8 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public List<TaskResponse> list(TaskStatus status) {
-        List<Task> tasks = status == null
-                ? repository.findAllByOrderByIdAsc()
-                : repository.findByStatusOrderByIdAsc(status);
+        List<Task> tasks =
+                status == null ? repository.findAllByOrderByIdAsc() : repository.findByStatusOrderByIdAsc(status);
         return tasks.stream().map(TaskResponse::from).toList();
     }
 
@@ -58,7 +57,8 @@ public class TaskService {
     }
 
     private Task find(Long id) {
-        return repository.findById(id)
+        return repository
+                .findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task " + id + " not found"));
     }
 }

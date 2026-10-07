@@ -43,8 +43,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     /** Optimistic lock (@Version): someone else changed the row between our read and our write. */
     @ExceptionHandler(OptimisticLockingFailureException.class)
     ProblemDetail handleConcurrentUpdate(OptimisticLockingFailureException ex) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
-                "The resource was changed by another request; reload it and try again");
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT, "The resource was changed by another request; reload it and try again");
     }
 
     @ExceptionHandler(Exception.class)
@@ -69,8 +69,10 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleHandlerMethodValidationException(
             HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         Map<String, String> errors = new LinkedHashMap<>();
-        ex.getParameterValidationResults().forEach(r -> errors.putIfAbsent(
-                r.getMethodParameter().getParameterName(), r.getResolvableErrors().get(0).getDefaultMessage()));
+        ex.getParameterValidationResults()
+                .forEach(r -> errors.putIfAbsent(
+                        r.getMethodParameter().getParameterName(),
+                        r.getResolvableErrors().get(0).getDefaultMessage()));
         ProblemDetail body = ex.getBody();
         body.setDetail("Validation failed");
         body.setProperty("errors", errors);

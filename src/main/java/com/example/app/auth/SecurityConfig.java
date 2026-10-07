@@ -31,12 +31,17 @@ public class SecurityConfig {
     static final int MAX_PASSWORD_BYTES = 72;
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService, ObjectMapper objectMapper,
-            @Value("${spring.h2.console.enabled:false}") boolean h2ConsoleEnabled) throws Exception {
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtService jwtService,
+            ObjectMapper objectMapper,
+            @Value("${spring.h2.console.enabled:false}") boolean h2ConsoleEnabled)
+            throws Exception {
         if (h2ConsoleEnabled) {
             // Local debugging only (H2_CONSOLE_ENABLED=true): the console can't send our token and runs in a frame.
             http.headers(h -> h.frameOptions(f -> f.sameOrigin()))
-                    .authorizeHttpRequests(auth -> auth.requestMatchers(PathRequest.toH2Console()).permitAll());
+                    .authorizeHttpRequests(auth ->
+                            auth.requestMatchers(PathRequest.toH2Console()).permitAll());
         }
         return http
                 // No cookies or sessions: the token is sent explicitly, so CSRF protection isn't needed.
@@ -44,21 +49,32 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/health", "/r/**", "/error").permitAll()
-                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/products").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/products/*").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/products/*").hasRole("ADMIN")
-                        .anyRequest().authenticated())
-                .exceptionHandling(e -> e
-                        .authenticationEntryPoint((request, response, ex) ->
-                                writeProblem(objectMapper, request, response, HttpStatus.UNAUTHORIZED,
-                                        "Missing, invalid or expired token"))
-                        .accessDeniedHandler((request, response, ex) ->
-                                writeProblem(objectMapper, request, response, HttpStatus.FORBIDDEN,
-                                        "You do not have permission to access this resource")))
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**", "/api/health", "/r/**", "/error")
+                        .permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/products")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/products/*")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/products/*")
+                        .hasRole("ADMIN")
+                        .anyRequest()
+                        .authenticated())
+                .exceptionHandling(e -> e.authenticationEntryPoint((request, response, ex) -> writeProblem(
+                                objectMapper,
+                                request,
+                                response,
+                                HttpStatus.UNAUTHORIZED,
+                                "Missing, invalid or expired token"))
+                        .accessDeniedHandler((request, response, ex) -> writeProblem(
+                                objectMapper,
+                                request,
+                                response,
+                                HttpStatus.FORBIDDEN,
+                                "You do not have permission to access this resource")))
                 .addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -77,8 +93,13 @@ public class SecurityConfig {
     }
 
     // Security errors happen before any controller runs, so ApiExceptionHandler can't format them; same JSON here.
-    private static void writeProblem(ObjectMapper objectMapper, HttpServletRequest request,
-            HttpServletResponse response, HttpStatus status, String detail) throws IOException {
+    private static void writeProblem(
+            ObjectMapper objectMapper,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            HttpStatus status,
+            String detail)
+            throws IOException {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
         problem.setInstance(URI.create(request.getRequestURI()));
         response.setStatus(status.value());

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SpotBugs findings that are false positives for this project. Every entry needs a reason. -->
+<FindBugsFilter>
+    <!-- "May expose internal representation": fires on every Spring constructor injection, JPA entity
+         collection and record with a List. Those objects are never shared with untrusted code. -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+    <!-- "Exception in constructor enables a finalizer attack": only relevant to classes untrusted code can
+         subclass. JwtService fails fast on a bad JWT_SECRET at startup, which is intended. -->
+    <Match>
+        <Class name="com.example.app.auth.JwtService"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+    <!-- java.util.Random only picks demo product data. Anything security-related uses SecureRandom
+         (short codes) or the JWT library. -->
+    <Match>
+        <Class name="com.example.app.product.ProductSeeder"/>
+        <Bug pattern="PREDICTABLE_RANDOM"/>
+    </Match>
+</FindBugsFilter>
