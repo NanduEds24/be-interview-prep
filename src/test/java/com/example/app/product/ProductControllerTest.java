@@ -66,7 +66,7 @@ class ProductControllerTest {
     @Test
     void combinesAllFiltersAndSorts() throws Exception {
         String json = mockMvc.perform(get("/api/products")
-                        .param("category", "books").param("minPrice", "20").param("maxPrice", "400")
+                        .param("category", "Books").param("minPrice", "20").param("maxPrice", "400")
                         .param("inStock", "true").param("q", "o").param("sort", "price,desc").param("size", "100"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
@@ -93,8 +93,32 @@ class ProductControllerTest {
     }
 
     @Test
+    void malformedSortReturns400() throws Exception {
+        mockMvc.perform(get("/api/products").param("sort", ",")).andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/products").param("sort", "price,desc,name")).andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/products").param("sort", "price,sideways")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void searchTreatsWildcardsLiterally() throws Exception {
+        mockMvc.perform(get("/api/products").param("q", "%"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(0));
+        mockMvc.perform(get("/api/products").param("q", "_"))
+                .andExpect(jsonPath("$.totalElements").value(0));
+        mockMvc.perform(get("/api/products").param("q", "\\"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
     void invalidPagingOrPriceRangeReturns400() throws Exception {
-        mockMvc.perform(get("/api/products").param("page", "-1")).andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/products").param("page", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.page").value("page cannot be negative"));
+        mockMvc.perform(get("/api/products").param("size", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.size").value("size must be at least 1"));
         mockMvc.perform(get("/api/products").param("minPrice", "50").param("maxPrice", "10"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail").value("minPrice cannot be greater than maxPrice"));
@@ -148,8 +172,27 @@ class ProductControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
+    void missingStockAndRatingReturn400InsteadOfZero() throws Exception {
+        String body = "{\"name\": \"X\", \"category\": \"Home\", \"price\": 9.99}";
+        mockMvc.perform(put("/api/products/1").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.stock").value("stock is required"))
+                .andExpect(jsonPath("$.errors.rating").value("rating is required"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void deletingUnknownProductReturns404() throws Exception {
+        mockMvc.perform(delete("/api/products/9999")).andExpect(status().isNotFound());
+    }
+
+    @Test
     void userCannotChangeProducts() throws Exception {
         mockMvc.perform(post("/api/products").contentType(MediaType.APPLICATION_JSON).content(VALID_PRODUCT))
                 .andExpect(status().isForbidden());
+        mockMvc.perform(put("/api/products/1").contentType(MediaType.APPLICATION_JSON).content(VALID_PRODUCT))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(delete("/api/products/1")).andExpect(status().isForbidden());
     }
 }
