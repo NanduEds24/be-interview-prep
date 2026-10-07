@@ -1,8 +1,9 @@
 # Project
 
 Timed build: a Java REST API built against the clock. There is no frontend; the API is the product
-and Swagger UI is the demo. Scope lives in SPEC.md; read it before starting any feature (it is created
-by /spec when the brief arrives).
+and Swagger UI is the demo. Scope lives in SPEC.md; read it before starting any feature (it was created
+by the /spec skill when the brief arrived). `.claude/` (settings and the /spec and /verify skills) is
+local to each machine and not in git.
 The team is new to Java: after each change, explain what you did in 3 lines or fewer.
 
 ## Stack
