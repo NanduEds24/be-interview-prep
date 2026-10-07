@@ -19,6 +19,10 @@ The team is new to Java: after each change, explain what you did in 3 lines or f
 ## Commands (Windows, PowerShell)
 - Run: `.\mvnw.cmd spring-boot:run`   (port 8080; use `.\mvnw.cmd`, not `./mvnw`)
 - Test: `.\mvnw.cmd test`
+- Format changed files: `.\mvnw.cmd spotless:apply` (palantir-java-format; run before committing)
+- All checks, as CI runs them: `.\mvnw.cmd verify` (tests, coverage floor 90% line / 75% branch,
+  Spotless, SpotBugs + FindSecBugs). Coverage report: `target/site/jacoco/index.html`
+- Pre-commit hook (once per clone): `git config core.hooksPath .githooks`
 - Swagger UI (demo and manual testing): http://localhost:8080/swagger-ui.html
 - OpenAPI JSON: http://localhost:8080/v3/api-docs
 - Database browser: off by default. Start with `$env:H2_CONSOLE_ENABLED="true"` to use
@@ -37,7 +41,9 @@ The team is new to Java: after each change, explain what you did in 3 lines or f
   write in the PR why it is accepted. Merge only after the tests pass again and all CI checks
   (Build and test on JDK 21 and 25, Secret scan) are green on the PR.
 - If something fails twice, stop and explain instead of trying a third approach.
-- Match the existing code style. Don't run formatters or tools that aren't installed in the project.
+- Match the existing code style. Spotless is the only formatter: run `spotless:apply`, never another tool.
+- A SpotBugs finding is fixed, or added to `spotbugs-exclude.xml` with a reason. Never lower the coverage
+  floor to make a build pass.
 
 ## Known traps
 - Spring Boot 3: test annotations are `org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest`
