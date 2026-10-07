@@ -32,6 +32,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     /** A unique constraint caught a duplicate that slipped past the service's check (two requests at once). */
     @ExceptionHandler(DataIntegrityViolationException.class)
     ProblemDetail handleConflict(DataIntegrityViolationException ex) {
+        // Logged so a constraint broken by a bug (NOT NULL, length) is visible, not just a client 409.
+        log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, "The request conflicts with existing data");
     }
 
