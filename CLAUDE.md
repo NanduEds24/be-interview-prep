@@ -19,7 +19,7 @@ The team is new to Java: after each change, explain what you did in 3 lines or f
 ## Commands (Windows, PowerShell)
 - Run: `.\mvnw.cmd spring-boot:run`   (port 8080; use `.\mvnw.cmd`, not `./mvnw`)
 - Test: `.\mvnw.cmd test`
-- Format changed files: `.\mvnw.cmd spotless:apply` (palantir-java-format; run before committing)
+- Format: `.\mvnw.cmd spotless:apply` (palantir-java-format; run before committing)
 - All checks, as CI runs them: `.\mvnw.cmd verify` (tests, coverage floor 90% line / 75% branch,
   Spotless, SpotBugs + FindSecBugs). Coverage report: `target/site/jacoco/index.html`
 - Pre-commit hook (once per clone): `git config core.hooksPath .githooks`

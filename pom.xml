@@ -28,8 +28,6 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
-		<!-- Spotless checks only files changed since this ref; -Dspotless.ratchetFrom=NONE checks every file. -->
-		<spotless.ratchetFrom>origin/main</spotless.ratchetFrom>
 		<jjwt.version>0.13.0</jjwt.version>
 	</properties>
 	<dependencies>
@@ -106,14 +104,12 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 			<!-- Formatting (like black): palantir-java-format, 4-space indent, 120 columns, close to the existing style.
-			     ratchetFrom: only files changed since origin/main are checked, so open branches don't get a
-			     whole-repo reformat dumped on them. Fix with .\mvnw.cmd spotless:apply -->
+			     Every Java file is checked. Fix with .\mvnw.cmd spotless:apply -->
 			<plugin>
 				<groupId>com.diffplug.spotless</groupId>
 				<artifactId>spotless-maven-plugin</artifactId>
 				<version>3.10.3</version>
 				<configuration>
-					<ratchetFrom>${spotless.ratchetFrom}</ratchetFrom>
 					<java>
 						<palantirJavaFormat>
 							<version>2.102.0</version>

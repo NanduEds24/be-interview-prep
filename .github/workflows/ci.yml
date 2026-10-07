@@ -25,15 +25,14 @@ jobs:
     steps:
       # Actions are pinned to commit SHAs (a tag can be moved); Dependabot keeps them current.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0 # Spotless compares against origin/main (ratchetFrom)
       - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
           cache: maven
       - name: mvn verify (tests, coverage floor, Spotless formatting, SpotBugs + FindSecBugs)
-        run: ./mvnw -B -ntp verify
+        # Static checks (Spotless, SpotBugs) give the same result on any JDK, so they run on 21 only.
+        run: ./mvnw -B -ntp verify ${{ matrix.java != '21' && '-Dspotless.check.skip=true -Dspotbugs.skip=true' || '' }}
 
   secrets:
     name: Secret scan (gitleaks)

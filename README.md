@@ -43,7 +43,7 @@ In Swagger UI: call `POST /api/auth/login`, copy `token`, click **Authorize** an
 | Check | Tool | Fix or report |
 |---|---|---|
 | Tests + coverage floor (90% line, 75% branch) | JUnit, JaCoCo | `target/site/jacoco/index.html` |
-| Formatting of changed files | Spotless (palantir-java-format) | `.\mvnw.cmd spotless:apply` |
+| Formatting | Spotless (palantir-java-format) | `.\mvnw.cmd spotless:apply` |
 | Bugs and security issues | SpotBugs + FindSecBugs | false positives go in `spotbugs-exclude.xml`, with a reason |
 | Secrets in git history | gitleaks (CI only) | |
 
