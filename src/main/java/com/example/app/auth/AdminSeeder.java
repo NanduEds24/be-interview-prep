@@ -44,6 +44,9 @@ public class AdminSeeder implements ApplicationRunner {
                     if (existing.getRole() != Role.ADMIN) {
                         log.warn("ADMIN_EMAIL {} is already registered as {}; no admin was created", normalized,
                                 existing.getRole());
+                    } else {
+                        log.info("Admin {} already exists; ADMIN_PASSWORD is only used when it is first created",
+                                normalized);
                     }
                 },
                 () -> repository.save(new AppUser(normalized, passwordEncoder.encode(password), Role.ADMIN)));
