@@ -36,6 +36,6 @@ build/
 node_modules/
 dist/
 # Local settings
-.claude/settings.local.json
+.claude/
 .idea/
 *.log
