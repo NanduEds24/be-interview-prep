@@ -24,10 +24,14 @@ import org.springframework.transaction.annotation.Transactional;
 @WithMockUser
 class TaskControllerTest {
 
-    private static final String TOMORROW = LocalDate.now().plusDays(1).toString();
+    // A week ahead, so the date can't become "today or past" if the suite runs across midnight.
+    private static final String TOMORROW = LocalDate.now().plusDays(7).toString();
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private TaskRepository repository;
 
     private long createTask(String title, String status) throws Exception {
         String body = """
@@ -107,6 +111,44 @@ class TaskControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Final"))
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+    }
+
+    @Test
+    void overdueTaskCanStillBeUpdatedWithItsOwnDueDate() throws Exception {
+        String lastWeek = LocalDate.now().minusDays(7).toString();
+        long id = repository.save(new Task("Overdue", null, TaskStatus.IN_PROGRESS, LocalDate.parse(lastWeek))).getId();
+        String body = """
+                {"title": "Overdue", "status": "DONE", "dueDate": "%s"}
+                """.formatted(lastWeek);
+
+        mockMvc.perform(put("/api/tasks/{id}", id).contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("DONE"));
+    }
+
+    @Test
+    void movingDueDateIntoThePastReturns400() throws Exception {
+        long id = createTask("Future", "TODO");
+        String body = "{\"title\": \"Future\", \"dueDate\": \"2000-01-01\"}";
+
+        mockMvc.perform(put("/api/tasks/{id}", id).contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("dueDate cannot be moved into the past"));
+    }
+
+    @Test
+    void invalidUpdateReturnsFieldErrors() throws Exception {
+        long id = createTask("Valid", "TODO");
+
+        mockMvc.perform(put("/api/tasks/{id}", id).contentType(MediaType.APPLICATION_JSON).content("{\"title\": \"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.title").value("title is required"));
+    }
+
+    @Test
+    void nonNumericIdReturns400() throws Exception {
+        mockMvc.perform(get("/api/tasks/abc")).andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
+        mockMvc.perform(delete("/api/tasks/abc")).andExpect(status().isBadRequest());
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.example.app.task;
 
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,11 @@ public class TaskService {
     @Transactional
     public TaskResponse update(Long id, TaskRequest request) {
         Task task = find(id);
-        task.update(request.title(), request.description(), request.status(), request.dueDate());
+        LocalDate dueDate = request.dueDate();
+        if (dueDate != null && dueDate.isBefore(LocalDate.now()) && !dueDate.equals(task.getDueDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "dueDate cannot be moved into the past");
+        }
+        task.update(request.title(), request.description(), request.status(), dueDate);
         return TaskResponse.from(task);
     }
 

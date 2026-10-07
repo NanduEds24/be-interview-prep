@@ -1,8 +1,10 @@
 package com.example.app.task;
 
 import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,7 +28,7 @@ public class TaskController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TaskResponse create(@Valid @RequestBody TaskRequest request) {
+    public TaskResponse create(@Validated({Default.class, TaskRequest.OnCreate.class}) @RequestBody TaskRequest request) {
         return service.create(request);
     }
 
