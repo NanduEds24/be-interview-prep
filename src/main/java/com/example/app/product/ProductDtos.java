@@ -21,9 +21,10 @@ public final class ProductDtos {
             @NotBlank(message = "category is required") @Size(max = 50, message = "category must be at most 50 characters") String category,
             @NotNull(message = "price is required") @DecimalMin(value = "0.01", message = "price must be at least 0.01")
             @Digits(integer = 8, fraction = 2, message = "price must have at most 2 decimals") BigDecimal price,
-            @Min(value = 0, message = "stock cannot be negative") int stock,
+            @NotNull(message = "stock is required") @Min(value = 0, message = "stock cannot be negative") Integer stock,
+            @NotNull(message = "rating is required")
             @DecimalMin(value = "0.0", message = "rating must be between 0 and 5")
-            @DecimalMax(value = "5.0", message = "rating must be between 0 and 5") double rating) {}
+            @DecimalMax(value = "5.0", message = "rating must be between 0 and 5") Double rating) {}
 
     // Immutable record: safe to keep in the cache and hand to many requests.
     public record ProductResponse(
