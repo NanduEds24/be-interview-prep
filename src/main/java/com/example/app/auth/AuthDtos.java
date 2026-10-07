@@ -9,11 +9,12 @@ public final class AuthDtos {
 
     private AuthDtos() {}
 
-    // BCrypt only uses the first 72 bytes of a password, hence the upper limit.
+    // BCrypt rejects passwords over 72 bytes, hence the upper limits (characters and UTF-8 bytes).
     public record RegisterRequest(
             @NotBlank(message = "email is required") @Email(message = "email must be a valid email address") String email,
             @NotBlank(message = "password is required")
-            @Size(min = 8, max = 72, message = "password must be 8 to 72 characters") String password) {}
+            @Size(min = 8, max = 72, message = "password must be 8 to 72 characters")
+            @MaxUtf8Bytes(value = 72, message = "password must be at most 72 bytes") String password) {}
 
     public record LoginRequest(
             @NotBlank(message = "email is required") String email,

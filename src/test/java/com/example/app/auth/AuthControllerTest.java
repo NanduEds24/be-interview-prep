@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,6 +36,9 @@ class AuthControllerTest {
 
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private ApplicationContext context;
 
     private void register(String email, String password) throws Exception {
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
@@ -156,5 +160,26 @@ class AuthControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.email").value("email must be a valid email address"))
                 .andExpect(jsonPath("$.errors.password").value("password must be 8 to 72 characters"));
+    }
+
+    @Test
+    void passwordOver72BytesReturns400NotServerError() throws Exception {
+        String emojiPassword = "😀".repeat(30); // 60 characters, but 120 bytes in UTF-8
+
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"emoji@test.com\", \"password\": \"" + emojiPassword + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.password").value("password must be at most 72 bytes"));
+
+        register("hana@test.com", "password123");
+        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"hana@test.com\", \"password\": \"" + emojiPassword + "\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void h2ConsoleIsOffByDefault() throws Exception {
+        // The console is its own servlet that MockMvc never reaches, so check it is not registered at all.
+        assertThat(context.containsBean("h2Console")).isFalse();
     }
 }
