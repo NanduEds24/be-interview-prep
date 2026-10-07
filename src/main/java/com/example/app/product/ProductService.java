@@ -72,7 +72,10 @@ public class ProductService {
 
     // "price,desc" -> ORDER BY price DESC, id ASC. The id tie-breaker keeps pages stable when values repeat.
     private static Sort parseSort(String sort) {
-        String[] parts = sort.split(",");
+        String[] parts = sort.split(",", -1);
+        if (parts.length > 2) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sort must be 'field' or 'field,asc|desc'");
+        }
         String field = parts[0].trim();
         if (!SORTABLE.contains(field)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
