@@ -21,7 +21,9 @@ The team is new to Java: after each change, explain what you did in 3 lines or f
 - Test: `.\mvnw.cmd test`
 - Swagger UI (demo and manual testing): http://localhost:8080/swagger-ui.html
 - OpenAPI JSON: http://localhost:8080/v3/api-docs
-- Database browser: http://localhost:8080/h2-console (JDBC URL `jdbc:h2:mem:appdb`, user `sa`)
+- Database browser: off by default. Start with `$env:H2_CONSOLE_ENABLED="true"` to use
+  http://localhost:8080/h2-console (JDBC URL `jdbc:h2:mem:appdb`, user `sa`). Never enable it by default:
+  it is public and gives full SQL access.
 
 ## How we work
 - One feature at a time: entity, repository, service, controller, then tests.
@@ -31,6 +33,8 @@ The team is new to Java: after each change, explain what you did in 3 lines or f
 - After each feature: run the tests, call the endpoints on the running app, then commit.
 - Simplest thing that works. No new dependencies without asking.
 - Git flow follows the brief: one branch per question (feature/qN-...), PR into main, merge, pull main. One-line commit messages. After committing, show `git log --oneline -1` as proof.
+- Never merge a PR unreviewed: before merging, run `/code-review` on it, then fix each finding or
+  write in the PR why it is accepted. Merge only after the tests pass again.
 - If something fails twice, stop and explain instead of trying a third approach.
 - Match the existing code style. Don't run formatters or tools that aren't installed in the project.
 
