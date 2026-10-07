@@ -2,6 +2,7 @@ package com.example.app.common;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -32,6 +33,10 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     /** A unique constraint caught a duplicate that slipped past the service's check (two requests at once). */
     @ExceptionHandler(DataIntegrityViolationException.class)
     ProblemDetail handleConflict(DataIntegrityViolationException ex) {
+        // Logged so a constraint broken by a bug (NOT NULL, length) is visible, not just a client 409.
+        // Only the constraint name: the database message contains row values such as emails.
+        String constraint = ex.getCause() instanceof ConstraintViolationException c ? c.getConstraintName() : "unknown";
+        log.warn("Data integrity violation on constraint {}", constraint);
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, "The request conflicts with existing data");
     }
 

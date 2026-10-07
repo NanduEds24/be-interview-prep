@@ -34,18 +34,21 @@ class ConcurrentVisitTest {
         int visits = 100;
         CountDownLatch start = new CountDownLatch(1);
         ExecutorService pool = Executors.newFixedThreadPool(20);
-        List<Future<String>> results = new ArrayList<>();
-        for (int i = 0; i < visits; i++) {
-            results.add(pool.submit(() -> {
-                start.await();
-                return service.resolve(code);
-            }));
+        try {
+            List<Future<String>> results = new ArrayList<>();
+            for (int i = 0; i < visits; i++) {
+                results.add(pool.submit(() -> {
+                    start.await();
+                    return service.resolve(code, true);
+                }));
+            }
+            start.countDown();
+            for (Future<String> result : results) {
+                result.get();
+            }
+        } finally {
+            pool.shutdownNow(); // no leaked threads even if a visit failed
         }
-        start.countDown();
-        for (Future<String> result : results) {
-            result.get();
-        }
-        pool.shutdown();
 
         assertThat(service.stats(code).visitCount()).isEqualTo(visits);
     }

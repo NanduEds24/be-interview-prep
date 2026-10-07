@@ -4,6 +4,7 @@ import com.example.app.auth.AuthDtos.LoginRequest;
 import com.example.app.auth.AuthDtos.RegisterRequest;
 import com.example.app.auth.AuthDtos.TokenResponse;
 import com.example.app.auth.AuthDtos.UserResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -24,12 +25,14 @@ public class AuthController {
     }
 
     @PostMapping("/api/auth/register")
+    @SecurityRequirements // public: no token needed (no lock in Swagger UI)
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse register(@Valid @RequestBody RegisterRequest request) {
         return service.register(request);
     }
 
     @PostMapping("/api/auth/login")
+    @SecurityRequirements
     public TokenResponse login(@Valid @RequestBody LoginRequest request) {
         return service.login(request);
     }
