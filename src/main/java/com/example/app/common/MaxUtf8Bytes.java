@@ -1,4 +1,4 @@
-package com.example.app.auth;
+package com.example.app.common;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.ConstraintValidator;

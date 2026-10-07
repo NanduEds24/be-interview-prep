@@ -5,6 +5,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,20 +26,26 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
+    /** BCrypt's input limit. */
+    static final int MAX_PASSWORD_BYTES = 72;
+
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService, ObjectMapper objectMapper)
-            throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService, ObjectMapper objectMapper,
+            @Value("${spring.h2.console.enabled:false}") boolean h2ConsoleEnabled) throws Exception {
+        if (h2ConsoleEnabled) {
+            // Local debugging only (H2_CONSOLE_ENABLED=true): the console can't send our token and runs in a frame.
+            http.headers(h -> h.frameOptions(f -> f.sameOrigin()))
+                    .authorizeHttpRequests(auth -> auth.requestMatchers("/h2-console/**").permitAll());
+        }
         return http
                 // No cookies or sessions: the token is sent explicitly, so CSRF protection isn't needed.
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
-                .headers(h -> h.frameOptions(f -> f.sameOrigin())) // H2 console (when enabled) runs in a frame
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/health", "/r/**", "/error").permitAll()
-                        // The H2 console is off unless H2_CONSOLE_ENABLED=true (local debugging only).
-                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/h2-console/**").permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e
@@ -53,7 +61,15 @@ public class SecurityConfig {
 
     @Bean
     PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder() {
+            // BCrypt ignores everything after 72 bytes when checking, so "password + anything" would match.
+            @Override
+            public boolean matches(CharSequence rawPassword, String encodedPassword) {
+                return rawPassword != null
+                        && rawPassword.toString().getBytes(StandardCharsets.UTF_8).length <= MAX_PASSWORD_BYTES
+                        && super.matches(rawPassword, encodedPassword);
+            }
+        };
     }
 
     // Security errors happen before any controller runs, so ApiExceptionHandler can't format them; same JSON here.

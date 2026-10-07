@@ -1,5 +1,6 @@
 package com.example.app.auth;
 
+import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -27,6 +28,10 @@ public class AdminSeeder implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         if (email.isBlank() || password.isBlank()) {
             return;
+        }
+        int bytes = password.getBytes(StandardCharsets.UTF_8).length;
+        if (password.length() < 8 || bytes > SecurityConfig.MAX_PASSWORD_BYTES) {
+            throw new IllegalStateException("ADMIN_PASSWORD must be at least 8 characters and at most 72 bytes");
         }
         String normalized = UserService.normalize(email);
         if (!repository.existsByEmail(normalized)) {

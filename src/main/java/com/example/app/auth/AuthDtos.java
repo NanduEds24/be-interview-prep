@@ -1,5 +1,6 @@
 package com.example.app.auth;
 
+import com.example.app.common.MaxUtf8Bytes;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -9,12 +10,13 @@ public final class AuthDtos {
 
     private AuthDtos() {}
 
-    // BCrypt rejects passwords over 72 bytes, hence the upper limits (characters and UTF-8 bytes).
+    // BCrypt rejects passwords over 72 bytes. One byte limit (not @Size max) so there is only one error message.
     public record RegisterRequest(
             @NotBlank(message = "email is required") @Email(message = "email must be a valid email address") String email,
             @NotBlank(message = "password is required")
-            @Size(min = 8, max = 72, message = "password must be 8 to 72 characters")
-            @MaxUtf8Bytes(value = 72, message = "password must be at most 72 bytes") String password) {}
+            @Size(min = 8, message = "password must be at least 8 characters")
+            @MaxUtf8Bytes(value = SecurityConfig.MAX_PASSWORD_BYTES, message = "password must be at most 72 bytes")
+            String password) {}
 
     public record LoginRequest(
             @NotBlank(message = "email is required") String email,

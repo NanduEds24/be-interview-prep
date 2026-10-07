@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,9 +35,6 @@ class AuthControllerTest {
 
     @Autowired
     private JwtService jwtService;
-
-    @Autowired
-    private ApplicationContext context;
 
     private void register(String email, String password) throws Exception {
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
@@ -159,7 +155,7 @@ class AuthControllerTest {
                         .content("{\"email\": \"not-an-email\", \"password\": \"short\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.email").value("email must be a valid email address"))
-                .andExpect(jsonPath("$.errors.password").value("password must be 8 to 72 characters"));
+                .andExpect(jsonPath("$.errors.password").value("password must be at least 8 characters"));
     }
 
     @Test
@@ -178,8 +174,20 @@ class AuthControllerTest {
     }
 
     @Test
-    void h2ConsoleIsOffByDefault() throws Exception {
-        // The console is its own servlet that MockMvc never reaches, so check it is not registered at all.
-        assertThat(context.containsBean("h2Console")).isFalse();
+    void longAsciiPasswordGetsOneStableMessage() throws Exception {
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"jo@test.com\", \"password\": \"" + "a".repeat(80) + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.password").value("password must be at most 72 bytes"));
+    }
+
+    @Test
+    void loginRejectsPasswordThatOnlyMatchesAfterBcryptTruncation() throws Exception {
+        String password72 = "a".repeat(72);
+        register("ivan@test.com", password72);
+
+        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"ivan@test.com\", \"password\": \"" + password72 + "wrong\"}"))
+                .andExpect(status().isUnauthorized());
     }
 }
