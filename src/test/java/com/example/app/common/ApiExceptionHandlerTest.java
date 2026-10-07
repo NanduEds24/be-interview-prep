@@ -39,6 +39,11 @@ class ApiExceptionHandlerTest {
         String missing() {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Sample 1 not found");
         }
+
+        @GetMapping("/sample/boom")
+        String boom() {
+            throw new IllegalStateException("secret internal detail");
+        }
     }
 
     @Autowired
@@ -59,5 +64,13 @@ class ApiExceptionHandlerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.detail").value("Sample 1 not found"));
+    }
+
+    @Test
+    void unexpectedErrorReturnsGeneric500() throws Exception {
+        mockMvc.perform(get("/sample/boom"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.detail").value("An unexpected error occurred"));
     }
 }
