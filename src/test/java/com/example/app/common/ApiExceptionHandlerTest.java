@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 // Controllers nested in test classes are excluded from scanning, so register the sample one explicitly.
 @WebMvcTest(ApiExceptionHandlerTest.SampleController.class)
+@AutoConfigureMockMvc(addFilters = false) // MVC behaviour only; security is tested in auth/
 @Import(ApiExceptionHandlerTest.SampleController.class)
 class ApiExceptionHandlerTest {
 
