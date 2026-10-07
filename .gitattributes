@@ -1,0 +1,10 @@
+# Store text files with LF line endings; keep Windows scripts as CRLF. Later lines win.
+* text=auto eol=lf
+mvnw text eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.ico binary
+*.jar binary
