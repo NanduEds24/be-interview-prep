@@ -27,10 +27,13 @@ public class OrderController {
 
     /** 201 for a new order; 200 with the same order when the Idempotency-Key was already used (a retry). */
     @PostMapping
-    public ResponseEntity<OrderResponse> place(@RequestHeader("Idempotency-Key") String idempotencyKey,
-            @Valid @RequestBody PlaceOrderRequest request, Authentication authentication) {
+    public ResponseEntity<OrderResponse> place(
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @Valid @RequestBody PlaceOrderRequest request,
+            Authentication authentication) {
         PlaceOrderResult result = service.place(authentication.getName(), idempotencyKey, request);
-        return ResponseEntity.status(result.created() ? HttpStatus.CREATED : HttpStatus.OK).body(result.order());
+        return ResponseEntity.status(result.created() ? HttpStatus.CREATED : HttpStatus.OK)
+                .body(result.order());
     }
 
     @GetMapping("/{id}")

@@ -10,4 +10,5 @@ public record ShortenRequest(
         @Size(max = 2048, message = "url must be at most 2048 characters")
         @HttpUrl
         String url,
+
         @Future(message = "expiresAt must be in the future") Instant expiresAt) {}

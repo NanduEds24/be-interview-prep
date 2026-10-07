@@ -66,10 +66,17 @@ class ProductControllerTest {
     @Test
     void combinesAllFiltersAndSorts() throws Exception {
         String json = mockMvc.perform(get("/api/products")
-                        .param("category", "Books").param("minPrice", "20").param("maxPrice", "400")
-                        .param("inStock", "true").param("q", "o").param("sort", "price,desc").param("size", "100"))
+                        .param("category", "Books")
+                        .param("minPrice", "20")
+                        .param("maxPrice", "400")
+                        .param("inStock", "true")
+                        .param("q", "o")
+                        .param("sort", "price,desc")
+                        .param("size", "100"))
                 .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
         List<Map<String, Object>> products = JsonPath.read(json, "$.content");
         assertThat(products).isNotEmpty();
@@ -142,28 +149,37 @@ class ProductControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void adminCreatesUpdatesAndDeletes() throws Exception {
-        String json = mockMvc.perform(post("/api/products").contentType(MediaType.APPLICATION_JSON).content(VALID_PRODUCT))
+        String json = mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_PRODUCT))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Test Lamp"))
-                .andReturn().getResponse().getContentAsString();
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
         long id = ((Number) JsonPath.read(json, "$.id")).longValue();
 
-        mockMvc.perform(put("/api/products/{id}", id).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/api/products/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(VALID_PRODUCT.replace("19.99", "29.99")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.price").value(29.99));
 
         mockMvc.perform(delete("/api/products/{id}", id)).andExpect(status().isNoContent());
         mockMvc.perform(get("/api/products/{id}", id)).andExpect(status().isNotFound());
-        mockMvc.perform(put("/api/products/{id}", id).contentType(MediaType.APPLICATION_JSON).content(VALID_PRODUCT))
+        mockMvc.perform(put("/api/products/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_PRODUCT))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void invalidProductReturnsFieldErrors() throws Exception {
-        mockMvc.perform(post("/api/products").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\": \"\", \"category\": \"Home\", \"price\": 0, \"stock\": -1, \"rating\": 6}"))
+        mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(
+                                "{\"name\": \"\", \"category\": \"Home\", \"price\": 0, \"stock\": -1, \"rating\": 6}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.name").exists())
                 .andExpect(jsonPath("$.errors.price").exists())
@@ -175,7 +191,9 @@ class ProductControllerTest {
     @WithMockUser(roles = "ADMIN")
     void missingStockAndRatingReturn400InsteadOfZero() throws Exception {
         String body = "{\"name\": \"X\", \"category\": \"Home\", \"price\": 9.99}";
-        mockMvc.perform(put("/api/products/1").contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(put("/api/products/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.stock").value("stock is required"))
                 .andExpect(jsonPath("$.errors.rating").value("rating is required"));
@@ -189,9 +207,13 @@ class ProductControllerTest {
 
     @Test
     void userCannotChangeProducts() throws Exception {
-        mockMvc.perform(post("/api/products").contentType(MediaType.APPLICATION_JSON).content(VALID_PRODUCT))
+        mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_PRODUCT))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(put("/api/products/1").contentType(MediaType.APPLICATION_JSON).content(VALID_PRODUCT))
+        mockMvc.perform(put("/api/products/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_PRODUCT))
                 .andExpect(status().isForbidden());
         mockMvc.perform(delete("/api/products/1")).andExpect(status().isForbidden());
     }

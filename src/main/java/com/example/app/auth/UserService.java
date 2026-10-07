@@ -42,7 +42,8 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public TokenResponse login(LoginRequest request) {
-        AppUser user = repository.findByEmail(normalize(request.email()))
+        AppUser user = repository
+                .findByEmail(normalize(request.email()))
                 .filter(u -> passwordEncoder.matches(request.password(), u.getPasswordHash()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password"));
         return new TokenResponse(jwtService.createToken(user), "Bearer", JwtService.TOKEN_TTL.toSeconds());
@@ -50,13 +51,17 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserResponse profile(String email) {
-        return repository.findByEmail(email).map(UserResponse::from)
+        return repository
+                .findByEmail(email)
+                .map(UserResponse::from)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User " + email + " not found"));
     }
 
     @Transactional(readOnly = true)
     public List<UserResponse> listAll() {
-        return repository.findAllByOrderByIdAsc().stream().map(UserResponse::from).toList();
+        return repository.findAllByOrderByIdAsc().stream()
+                .map(UserResponse::from)
+                .toList();
     }
 
     static String normalize(String email) {

@@ -54,8 +54,9 @@ class OrderConcurrencyTest {
     }
 
     private long product(int stock) {
-        long id = productRepository.save(new Product("Hot Item", "Toys", new BigDecimal("1.00"), stock, 5.0,
-                Instant.now())).getId();
+        long id = productRepository
+                .save(new Product("Hot Item", "Toys", new BigDecimal("1.00"), stock, 5.0, Instant.now()))
+                .getId();
         createdProducts.add(id);
         return id;
     }
@@ -97,12 +98,15 @@ class OrderConcurrencyTest {
         long productId = product(10);
         var keys = new java.util.concurrent.atomic.AtomicInteger();
 
-        List<Object> results = runAtOnce(50, () ->
-                orderService.place("buyer@test.com", "key-" + keys.incrementAndGet(), request(productId, 1)));
+        List<Object> results = runAtOnce(
+                50, () -> orderService.place("buyer@test.com", "key-" + keys.incrementAndGet(), request(productId, 1)));
 
-        long succeeded = results.stream().filter(r -> r instanceof PlaceOrderResult).count();
+        long succeeded =
+                results.stream().filter(r -> r instanceof PlaceOrderResult).count();
         long conflicts = results.stream()
-                .filter(r -> r instanceof ResponseStatusException e && e.getStatusCode().value() == 409).count();
+                .filter(r -> r instanceof ResponseStatusException e
+                        && e.getStatusCode().value() == 409)
+                .count();
         assertThat(succeeded).isEqualTo(10);
         assertThat(conflicts).isEqualTo(40);
         assertThat(stock(productId)).isZero();
@@ -113,11 +117,16 @@ class OrderConcurrencyTest {
     void simultaneousRetriesWithSameKeyCreateOneOrder() throws Exception {
         long productId = product(10);
 
-        List<Object> results = runAtOnce(20, () -> orderService.place("buyer@test.com", "same-key", request(productId, 1)));
+        List<Object> results =
+                runAtOnce(20, () -> orderService.place("buyer@test.com", "same-key", request(productId, 1)));
 
         assertThat(results).allMatch(r -> r instanceof PlaceOrderResult);
-        assertThat(results.stream().map(r -> ((PlaceOrderResult) r).order().id()).distinct()).hasSize(1);
-        assertThat(results.stream().filter(r -> ((PlaceOrderResult) r).created())).hasSize(1);
+        assertThat(results.stream()
+                        .map(r -> ((PlaceOrderResult) r).order().id())
+                        .distinct())
+                .hasSize(1);
+        assertThat(results.stream().filter(r -> ((PlaceOrderResult) r).created()))
+                .hasSize(1);
         assertThat(orderRepository.count()).isEqualTo(1);
         assertThat(stock(productId)).isEqualTo(9);
     }
@@ -126,7 +135,8 @@ class OrderConcurrencyTest {
     void orderIsAllOrNothing() {
         long plenty = product(5);
         long scarce = product(1);
-        PlaceOrderRequest request = new PlaceOrderRequest(List.of(new ItemRequest(plenty, 2), new ItemRequest(scarce, 2)));
+        PlaceOrderRequest request =
+                new PlaceOrderRequest(List.of(new ItemRequest(plenty, 2), new ItemRequest(scarce, 2)));
 
         assertThatThrownBy(() -> orderService.place("buyer@test.com", "mixed", request))
                 .isInstanceOf(ResponseStatusException.class)
@@ -154,7 +164,10 @@ class OrderConcurrencyTest {
         long productId = product(5);
         assertThat(productService.get(productId).stock()).isEqualTo(5); // now cached
 
-        long orderId = orderService.place("buyer@test.com", "cache-key", request(productId, 2)).order().id();
+        long orderId = orderService
+                .place("buyer@test.com", "cache-key", request(productId, 2))
+                .order()
+                .id();
         assertThat(productService.get(productId).stock()).isEqualTo(3);
 
         orderService.cancel("buyer@test.com", orderId);

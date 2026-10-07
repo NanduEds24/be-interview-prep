@@ -41,10 +41,27 @@ public class ShortLink {
         return expiresAt != null && !expiresAt.isAfter(Instant.now());
     }
 
-    public Long getId() { return id; }
-    public String getCode() { return code; }
-    public String getOriginalUrl() { return originalUrl; }
-    public Instant getExpiresAt() { return expiresAt; }
-    public long getVisitCount() { return visitCount; }
-    public Instant getCreatedAt() { return createdAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getOriginalUrl() {
+        return originalUrl;
+    }
+
+    public Instant getExpiresAt() {
+        return expiresAt;
+    }
+
+    public long getVisitCount() {
+        return visitCount;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 }

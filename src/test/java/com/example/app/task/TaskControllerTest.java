@@ -37,11 +37,15 @@ class TaskControllerTest {
         String body = """
                 {"title": "%s", "description": "Write tests", "status": "%s", "dueDate": "%s"}
                 """.formatted(title, status, TOMORROW);
-        String json = mockMvc.perform(post("/api/tasks").contentType(MediaType.APPLICATION_JSON).content(body))
+        String json = mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title").value(title))
                 .andExpect(jsonPath("$.createdAt").exists())
-                .andReturn().getResponse().getContentAsString();
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
         return ((Number) JsonPath.read(json, "$.id")).longValue();
     }
 
@@ -57,7 +61,9 @@ class TaskControllerTest {
 
     @Test
     void missingStatusDefaultsToTodo() throws Exception {
-        mockMvc.perform(post("/api/tasks").contentType(MediaType.APPLICATION_JSON).content("{\"title\": \"No status\"}"))
+        mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\": \"No status\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("TODO"));
     }
@@ -67,7 +73,9 @@ class TaskControllerTest {
         String body = """
                 {"title": "", "dueDate": "2000-01-01"}
                 """;
-        mockMvc.perform(post("/api/tasks").contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.errors.title").value("title is required"))
@@ -77,7 +85,9 @@ class TaskControllerTest {
     @Test
     void titleLongerThan100IsRejected() throws Exception {
         String body = "{\"title\": \"" + "x".repeat(101) + "\"}";
-        mockMvc.perform(post("/api/tasks").contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.title").value("title must be at most 100 characters"));
     }
@@ -107,7 +117,9 @@ class TaskControllerTest {
                 {"title": "Final", "status": "IN_PROGRESS", "dueDate": "%s"}
                 """.formatted(TOMORROW);
 
-        mockMvc.perform(put("/api/tasks/{id}", id).contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(put("/api/tasks/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Final"))
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
@@ -116,12 +128,16 @@ class TaskControllerTest {
     @Test
     void overdueTaskCanStillBeUpdatedWithItsOwnDueDate() throws Exception {
         String lastWeek = LocalDate.now().minusDays(7).toString();
-        long id = repository.save(new Task("Overdue", null, TaskStatus.IN_PROGRESS, LocalDate.parse(lastWeek))).getId();
+        long id = repository
+                .save(new Task("Overdue", null, TaskStatus.IN_PROGRESS, LocalDate.parse(lastWeek)))
+                .getId();
         String body = """
                 {"title": "Overdue", "status": "DONE", "dueDate": "%s"}
                 """.formatted(lastWeek);
 
-        mockMvc.perform(put("/api/tasks/{id}", id).contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(put("/api/tasks/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("DONE"));
     }
@@ -131,7 +147,9 @@ class TaskControllerTest {
         long id = createTask("Future", "TODO");
         String body = "{\"title\": \"Future\", \"dueDate\": \"2000-01-01\"}";
 
-        mockMvc.perform(put("/api/tasks/{id}", id).contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(put("/api/tasks/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.errors.dueDate").value("dueDate cannot be moved into the past"));
@@ -141,14 +159,18 @@ class TaskControllerTest {
     void invalidUpdateReturnsFieldErrors() throws Exception {
         long id = createTask("Valid", "TODO");
 
-        mockMvc.perform(put("/api/tasks/{id}", id).contentType(MediaType.APPLICATION_JSON).content("{\"title\": \"\"}"))
+        mockMvc.perform(put("/api/tasks/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\": \"\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.title").value("title is required"));
     }
 
     @Test
     void nonNumericIdReturns400() throws Exception {
-        mockMvc.perform(get("/api/tasks/abc")).andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
+        mockMvc.perform(get("/api/tasks/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
         mockMvc.perform(delete("/api/tasks/abc")).andExpect(status().isBadRequest());
     }
 
@@ -165,7 +187,9 @@ class TaskControllerTest {
         mockMvc.perform(get("/api/tasks/999"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.detail").value("Task 999 not found"));
-        mockMvc.perform(put("/api/tasks/999").contentType(MediaType.APPLICATION_JSON).content("{\"title\": \"x\"}"))
+        mockMvc.perform(put("/api/tasks/999")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\": \"x\"}"))
                 .andExpect(status().isNotFound());
         mockMvc.perform(delete("/api/tasks/999")).andExpect(status().isNotFound());
     }

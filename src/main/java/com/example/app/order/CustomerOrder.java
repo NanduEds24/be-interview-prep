@@ -23,8 +23,11 @@ import java.util.List;
  * retry arrives while the first request is still running.
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name = "uk_order_customer_key",
-        columnNames = {"customerEmail", "idempotencyKey"}))
+@Table(
+        uniqueConstraints =
+                @UniqueConstraint(
+                        name = "uk_order_customer_key",
+                        columnNames = {"customerEmail", "idempotencyKey"}))
 public class CustomerOrder {
 
     @Id
@@ -67,11 +70,31 @@ public class CustomerOrder {
         items.add(new OrderItem(this, productId, quantity));
     }
 
-    public Long getId() { return id; }
-    public String getCustomerEmail() { return customerEmail; }
-    public String getIdempotencyKey() { return idempotencyKey; }
-    public String getRequestFingerprint() { return requestFingerprint; }
-    public OrderStatus getStatus() { return status; }
-    public Instant getCreatedAt() { return createdAt; }
-    public List<OrderItem> getItems() { return items; }
+    public Long getId() {
+        return id;
+    }
+
+    public String getCustomerEmail() {
+        return customerEmail;
+    }
+
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
+    public String getRequestFingerprint() {
+        return requestFingerprint;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public List<OrderItem> getItems() {
+        return items;
+    }
 }

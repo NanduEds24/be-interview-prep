@@ -20,7 +20,8 @@ public class ProductService {
 
     public static final String CACHE = "products";
     static final int MAX_PAGE_SIZE = 100;
-    private static final Set<String> SORTABLE = Set.of("id", "name", "category", "price", "stock", "rating", "createdAt");
+    private static final Set<String> SORTABLE =
+            Set.of("id", "name", "category", "price", "stock", "rating", "createdAt");
 
     private final ProductRepository repository;
 
@@ -30,11 +31,14 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public PageResponse<ProductResponse> list(ProductFilter filter, int page, int size, String sort) {
-        if (filter.minPrice() != null && filter.maxPrice() != null && filter.minPrice().compareTo(filter.maxPrice()) > 0) {
+        if (filter.minPrice() != null
+                && filter.maxPrice() != null
+                && filter.minPrice().compareTo(filter.maxPrice()) > 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "minPrice cannot be greater than maxPrice");
         }
         PageRequest pageable = PageRequest.of(page, Math.min(size, MAX_PAGE_SIZE), parseSort(sort));
-        return PageResponse.from(repository.findAll(ProductSpecs.from(filter), pageable).map(ProductResponse::from));
+        return PageResponse.from(
+                repository.findAll(ProductSpecs.from(filter), pageable).map(ProductResponse::from));
     }
 
     /** Cached by id. The first call queries the database; later calls are served from memory until evicted. */
@@ -66,7 +70,8 @@ public class ProductService {
     }
 
     private Product find(Long id) {
-        return repository.findById(id)
+        return repository
+                .findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product " + id + " not found"));
     }
 
@@ -78,8 +83,10 @@ public class ProductService {
         }
         String field = parts[0].trim();
         if (!SORTABLE.contains(field)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Cannot sort by '" + field + "'. Allowed: " + String.join(", ", SORTABLE.stream().sorted().toList()));
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Cannot sort by '" + field + "'. Allowed: "
+                            + String.join(", ", SORTABLE.stream().sorted().toList()));
         }
         String direction = parts.length > 1 ? parts[1].trim().toLowerCase() : "asc";
         if (!direction.equals("asc") && !direction.equals("desc")) {

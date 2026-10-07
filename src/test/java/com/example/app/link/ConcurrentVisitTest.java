@@ -30,7 +30,8 @@ class ConcurrentVisitTest {
 
     @Test
     void concurrentVisitsAreAllCounted() throws Exception {
-        String code = service.shorten(new ShortenRequest("https://example.com", null)).getCode();
+        String code =
+                service.shorten(new ShortenRequest("https://example.com", null)).getCode();
         int visits = 100;
         CountDownLatch start = new CountDownLatch(1);
         ExecutorService pool = Executors.newFixedThreadPool(20);

@@ -34,8 +34,8 @@ public class JwtService {
             byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
             if (bytes.length < MIN_SECRET_BYTES) {
                 // HS256 needs a 256-bit key; fail with a clear message instead of a WeakKeyException stack trace.
-                throw new IllegalStateException("JWT_SECRET must be at least " + MIN_SECRET_BYTES
-                        + " bytes (it is " + bytes.length + ")");
+                throw new IllegalStateException(
+                        "JWT_SECRET must be at least " + MIN_SECRET_BYTES + " bytes (it is " + bytes.length + ")");
             }
             this.key = Keys.hmacShaKeyFor(bytes);
         }

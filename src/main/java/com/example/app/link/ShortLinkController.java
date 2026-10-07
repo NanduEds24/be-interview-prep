@@ -29,7 +29,9 @@ public class ShortLinkController {
     public ShortLinkResponse shorten(@Valid @RequestBody ShortenRequest request) {
         ShortLink link = service.shorten(request);
         String shortUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/r/{code}").buildAndExpand(link.getCode()).toUriString();
+                .path("/r/{code}")
+                .buildAndExpand(link.getCode())
+                .toUriString();
         return ShortLinkResponse.from(link, shortUrl);
     }
 

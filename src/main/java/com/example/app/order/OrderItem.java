@@ -35,7 +35,15 @@ public class OrderItem {
         this.quantity = quantity;
     }
 
-    public Long getId() { return id; }
-    public Long getProductId() { return productId; }
-    public int getQuantity() { return quantity; }
+    public Long getId() {
+        return id;
+    }
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
 }
