@@ -13,6 +13,7 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,8 +37,8 @@ public class CustomerOrder {
     @Column(nullable = false, length = 64)
     private String idempotencyKey;
 
-    /** Fingerprint of the items, to detect a key reused for a different request. */
-    @Column(nullable = false, length = 1000)
+    /** SHA-256 of the merged items, to detect a key reused for a different request. */
+    @Column(nullable = false, length = 64)
     private String requestFingerprint;
 
     @Enumerated(EnumType.STRING)
@@ -58,7 +59,8 @@ public class CustomerOrder {
         this.idempotencyKey = idempotencyKey;
         this.requestFingerprint = requestFingerprint;
         this.status = OrderStatus.PLACED;
-        this.createdAt = Instant.now();
+        // Microseconds = what the TIMESTAMP column stores, so the 201 response and later reads show the same value.
+        this.createdAt = Instant.now().truncatedTo(ChronoUnit.MICROS);
     }
 
     public void addItem(Long productId, int quantity) {
