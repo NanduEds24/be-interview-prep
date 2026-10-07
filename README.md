@@ -44,4 +44,4 @@ In Swagger UI: call `POST /api/auth/login`, copy `token`, click **Authorize** an
 | 2 | URL Shortener | [#2](https://github.com/NanduEds24/be-interview-prep/pull/2) |
 | 3 | Authentication & Roles | [#3](https://github.com/NanduEds24/be-interview-prep/pull/3) |
 | 4 | Product Catalog | [#5](https://github.com/NanduEds24/be-interview-prep/pull/5) |
-| 5 | Order Service | |
+| 5 | Order Service | [#7](https://github.com/NanduEds24/be-interview-prep/pull/7) |
