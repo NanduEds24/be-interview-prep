@@ -1,0 +1,24 @@
+# Weekly update PRs for Maven dependencies and GitHub Actions. Minor and patch updates are grouped into
+# one PR per ecosystem, so each week means at most a few PRs to review.
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      maven-minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # The brief requires Spring Boot 3.x: never propose Boot 4 (or other Spring major upgrades).
+      - dependency-name: "org.springframework.boot:*"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      actions-minor-and-patch:
+        update-types: [minor, patch]
