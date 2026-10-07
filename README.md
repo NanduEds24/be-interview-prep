@@ -69,6 +69,8 @@ How PRs were checked changed during the build:
 
 | PR | What it does |
 |---|---|
-| [#4](https://github.com/NanduEds24/be-interview-prep/pull/4) | Fixes from a first review of Q1–Q3 (H2 console off by default, BCrypt 72-byte limit, `.claude/` skills restored to the repo) and the review-before-merge rule |
+| [#4](https://github.com/NanduEds24/be-interview-prep/pull/4) | Fixes from a first review of Q1–Q3 (H2 console off by default, BCrypt 72-byte limit, `.claude/` tracked again, which was a mistake undone in #14) and the review-before-merge rule |
 | [#6](https://github.com/NanduEds24/be-interview-prep/pull/6) | CI on every PR (build and tests on JDK 21 and 25, gitleaks secret scan) and Dependabot |
 | [#10](https://github.com/NanduEds24/be-interview-prep/pull/10) | Fixes from the `/code-review` of Q1–Q3 (#1, #2, #3) |
+| [#12](https://github.com/NanduEds24/be-interview-prep/pull/12) | Quality checks in `mvn verify`: Spotless formatting, SpotBugs + FindSecBugs, JaCoCo coverage floor |
+| [#14](https://github.com/NanduEds24/be-interview-prep/pull/14) | `.claude/` is local-only again (as decided in `a573d3f`); #4 had tracked it by mistake |
