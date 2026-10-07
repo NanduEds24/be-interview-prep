@@ -155,6 +155,39 @@ class AuthControllerTest {
                         .content("{\"email\": \"not-an-email\", \"password\": \"short\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.email").value("email must be a valid email address"))
-                .andExpect(jsonPath("$.errors.password").value("password must be 8 to 72 characters"));
+                .andExpect(jsonPath("$.errors.password").value("password must be at least 8 characters"));
+    }
+
+    @Test
+    void passwordOver72BytesReturns400NotServerError() throws Exception {
+        String emojiPassword = "😀".repeat(30); // 60 characters, but 120 bytes in UTF-8
+
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"emoji@test.com\", \"password\": \"" + emojiPassword + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.password").value("password must be at most 72 bytes"));
+
+        register("hana@test.com", "password123");
+        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"hana@test.com\", \"password\": \"" + emojiPassword + "\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void longAsciiPasswordGetsOneStableMessage() throws Exception {
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"jo@test.com\", \"password\": \"" + "a".repeat(80) + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.password").value("password must be at most 72 bytes"));
+    }
+
+    @Test
+    void loginRejectsPasswordThatOnlyMatchesAfterBcryptTruncation() throws Exception {
+        String password72 = "a".repeat(72);
+        register("ivan@test.com", password72);
+
+        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"ivan@test.com\", \"password\": \"" + password72 + "wrong\"}"))
+                .andExpect(status().isUnauthorized());
     }
 }

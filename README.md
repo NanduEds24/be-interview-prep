@@ -12,7 +12,9 @@ Bean Validation, springdoc-openapi (Swagger UI). Maven wrapper included.
 ```
 - Swagger UI: http://localhost:8080/swagger-ui.html
 - OpenAPI JSON: http://localhost:8080/v3/api-docs
-- H2 console: http://localhost:8080/h2-console (JDBC URL `jdbc:h2:mem:appdb`, user `sa`, no password)
+- H2 console (off by default; local debugging only): set `H2_CONSOLE_ENABLED=true`, then open
+  http://localhost:8080/h2-console (JDBC URL `jdbc:h2:mem:appdb`, user `sa`, no password). It is public
+  and gives full SQL access, so never enable it on a shared machine.
 
 ### Authentication (Q3)
 All `/api/**` endpoints except `/api/auth/**` need `Authorization: Bearer <token>`. Secrets come from
