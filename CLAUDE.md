@@ -34,7 +34,8 @@ The team is new to Java: after each change, explain what you did in 3 lines or f
 - Simplest thing that works. No new dependencies without asking.
 - Git flow follows the brief: one branch per question (feature/qN-...), PR into main, merge, pull main. One-line commit messages. After committing, show `git log --oneline -1` as proof.
 - Never merge a PR unreviewed: before merging, run `/code-review` on it, then fix each finding or
-  write in the PR why it is accepted. Merge only after the tests pass again.
+  write in the PR why it is accepted. Merge only after the tests pass again and both CI checks
+  (Build and test, Secret scan) are green on the PR.
 - If something fails twice, stop and explain instead of trying a third approach.
 - Match the existing code style. Don't run formatters or tools that aren't installed in the project.
 
