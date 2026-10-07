@@ -32,8 +32,8 @@ public class ProductController {
     /** Page size above 100 is capped to 100. Sort is "field" or "field,asc|desc". */
     @GetMapping
     public PageResponse<ProductResponse> list(
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "20") @Min(1) int size,
+            @RequestParam(defaultValue = "0") @Min(value = 0, message = "page cannot be negative") int page,
+            @RequestParam(defaultValue = "20") @Min(value = 1, message = "size must be at least 1") int size,
             @RequestParam(defaultValue = "id,asc") String sort,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) BigDecimal minPrice,
