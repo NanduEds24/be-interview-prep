@@ -13,9 +13,10 @@ final class ProductSpecs {
 
     static Specification<Product> from(ProductFilter filter) {
         List<Specification<Product>> specs = new ArrayList<>();
+        // Exact match (case-sensitive) so the database can use idx_product_category; lower(category) couldn't.
         if (filter.category() != null && !filter.category().isBlank()) {
-            String category = filter.category().trim().toLowerCase(Locale.ROOT);
-            specs.add((root, query, cb) -> cb.equal(cb.lower(root.get("category")), category));
+            String category = filter.category().trim();
+            specs.add((root, query, cb) -> cb.equal(root.get("category"), category));
         }
         if (filter.minPrice() != null) {
             specs.add((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("price"), filter.minPrice()));
@@ -27,8 +28,11 @@ final class ProductSpecs {
             specs.add((root, query, cb) -> cb.greaterThan(root.get("stock"), 0));
         }
         if (filter.q() != null && !filter.q().isBlank()) {
-            String pattern = "%" + filter.q().trim().toLowerCase(Locale.ROOT) + "%";
-            specs.add((root, query, cb) -> cb.like(cb.lower(root.get("name")), pattern));
+            // Escape LIKE wildcards so "%" or "_" in the search text match literally.
+            String text = filter.q().trim().toLowerCase(Locale.ROOT)
+                    .replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+            String pattern = "%" + text + "%";
+            specs.add((root, query, cb) -> cb.like(cb.lower(root.get("name")), pattern, '\\'));
         }
         return Specification.allOf(specs);
     }
