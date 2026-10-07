@@ -25,5 +25,8 @@ class H2ConsoleTest {
         HttpStatus status = HttpStatus.valueOf(restTemplate.getForEntity("/h2-console/", String.class).getStatusCode().value());
         // 401: no servlet answers, and /h2-console is not on the public list either.
         assertThat(status).isEqualTo(HttpStatus.UNAUTHORIZED);
+        // And every other response keeps Spring Security's DENY, since nothing needs to be framed.
+        assertThat(restTemplate.getForEntity("/api/health", String.class).getHeaders().getFirst("X-Frame-Options"))
+                .isEqualTo("DENY");
     }
 }

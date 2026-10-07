@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -35,7 +36,7 @@ public class SecurityConfig {
         if (h2ConsoleEnabled) {
             // Local debugging only (H2_CONSOLE_ENABLED=true): the console can't send our token and runs in a frame.
             http.headers(h -> h.frameOptions(f -> f.sameOrigin()))
-                    .authorizeHttpRequests(auth -> auth.requestMatchers("/h2-console/**").permitAll());
+                    .authorizeHttpRequests(auth -> auth.requestMatchers(PathRequest.toH2Console()).permitAll());
         }
         return http
                 // No cookies or sessions: the token is sent explicitly, so CSRF protection isn't needed.

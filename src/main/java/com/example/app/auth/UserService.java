@@ -36,7 +36,10 @@ public class UserService {
         return UserResponse.from(repository.save(user));
     }
 
-    /** Same message for unknown email and wrong password, so attackers can't probe which emails exist. */
+    /**
+     * Same message for unknown email and wrong password, so the response doesn't say which part was wrong.
+     * (It doesn't hide which emails exist: register answers 409 for those, as the spec requires.)
+     */
     @Transactional(readOnly = true)
     public TokenResponse login(LoginRequest request) {
         AppUser user = repository.findByEmail(normalize(request.email()))
