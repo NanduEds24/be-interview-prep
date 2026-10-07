@@ -23,6 +23,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -133,6 +134,19 @@ class OrderConcurrencyTest {
         assertThat(stock(plenty)).isEqualTo(5);
         assertThat(stock(scarce)).isEqualTo(1);
         assertThat(orderRepository.count()).isZero();
+    }
+
+    @Test
+    void staleProductUpdateCannotOverwriteReservedStock() {
+        long productId = product(10);
+        Product adminCopy = productRepository.findById(productId).orElseThrow(); // admin reads stock 10
+
+        orderService.place("buyer@test.com", "before-admin", request(productId, 4)); // stock 6, version bumped
+
+        adminCopy.update("Renamed", "Toys", new BigDecimal("1.00"), 10, 5.0);
+        assertThatThrownBy(() -> productRepository.save(adminCopy))
+                .isInstanceOf(OptimisticLockingFailureException.class);
+        assertThat(stock(productId)).isEqualTo(6);
     }
 
     @Test

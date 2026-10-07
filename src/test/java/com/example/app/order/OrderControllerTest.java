@@ -74,6 +74,7 @@ class OrderControllerTest {
                 .andReturn().getResponse().getContentAsString();
 
         assertThat((Integer) JsonPath.read(second, "$.id")).isEqualTo(JsonPath.read(first, "$.id"));
+        assertThat((String) JsonPath.read(second, "$.createdAt")).isEqualTo(JsonPath.read(first, "$.createdAt"));
         assertThat(stock()).isEqualTo(3);
     }
 
@@ -120,6 +121,21 @@ class OrderControllerTest {
         order("bad-qty", productId, 0)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors['items[0].quantity']").value("quantity must be at least 1"));
+    }
+
+    @Test
+    void repeatedProductLinesCannotExceedTheQuantityLimit() throws Exception {
+        String line = "{\"productId\": %d, \"quantity\": 1000}".formatted(productId);
+        mockMvc.perform(post("/api/orders").header("Idempotency-Key", "split").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"items\": [" + line + "," + line + "]}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Total quantity for product " + productId + " must be at most 1000"));
+    }
+
+    @Test
+    void nonNumericOrderIdReturns400() throws Exception {
+        mockMvc.perform(get("/api/orders/abc")).andExpect(status().isBadRequest()).andExpect(jsonPath("$.status").value(400));
+        mockMvc.perform(post("/api/orders/abc/cancel")).andExpect(status().isBadRequest());
     }
 
     @Test
