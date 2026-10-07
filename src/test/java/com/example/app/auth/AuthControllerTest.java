@@ -1,9 +1,11 @@
 package com.example.app.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -232,6 +234,17 @@ class AuthControllerTest {
                         jsonPath("$.paths['/api/auth/register'].post.security").isEmpty())
                 .andExpect(jsonPath("$.paths['/r/{code}'].get.security").isEmpty())
                 .andExpect(jsonPath("$.security[0].bearerAuth").exists());
+    }
+
+    @Test
+    void swaggerUiLoadsWithoutToken() throws Exception {
+        // Swagger UI is the demo: a springdoc upgrade that moves its paths must fail the build.
+        mockMvc.perform(get("/swagger-ui.html"))
+                .andExpect(status().isFound())
+                .andExpect(header().string(HttpHeaders.LOCATION, "/swagger-ui/index.html"));
+        mockMvc.perform(get("/swagger-ui/index.html"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("swagger-ui")));
     }
 
     @Test
