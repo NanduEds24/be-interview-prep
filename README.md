@@ -45,3 +45,14 @@ In Swagger UI: call `POST /api/auth/login`, copy `token`, click **Authorize** an
 | 3 | Authentication & Roles | [#3](https://github.com/NanduEds24/be-interview-prep/pull/3) |
 | 4 | Product Catalog | [#5](https://github.com/NanduEds24/be-interview-prep/pull/5) |
 | 5 | Order Service | [#7](https://github.com/NanduEds24/be-interview-prep/pull/7) |
+
+### Follow-up PRs
+Every PR is reviewed with `/code-review` and needs green CI before merging. The first three question PRs
+were merged before that rule existed; they were reviewed afterwards, and each has a comment listing the
+findings and how they were resolved.
+
+| PR | What it does |
+|---|---|
+| [#4](https://github.com/NanduEds24/be-interview-prep/pull/4) | Fixes from a first review of Q1–Q3 (H2 console off by default, BCrypt 72-byte limit) and the review-before-merge rule |
+| [#6](https://github.com/NanduEds24/be-interview-prep/pull/6) | CI on every PR (build and tests on JDK 21 and 25, gitleaks secret scan) and Dependabot |
+| [#10](https://github.com/NanduEds24/be-interview-prep/pull/10) | Fixes from the `/code-review` of Q1–Q3 (#1, #2, #3) |
