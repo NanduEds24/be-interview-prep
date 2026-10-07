@@ -33,9 +33,10 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
-                .headers(h -> h.frameOptions(f -> f.sameOrigin())) // H2 console runs in a frame
+                .headers(h -> h.frameOptions(f -> f.sameOrigin())) // H2 console (when enabled) runs in a frame
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/health", "/r/**", "/error").permitAll()
+                        // The H2 console is off unless H2_CONSOLE_ENABLED=true (local debugging only).
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/h2-console/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
                         .anyRequest().authenticated())

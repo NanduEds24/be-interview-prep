@@ -88,7 +88,8 @@ createdAt Instant; items one-to-many **OrderItem** (id, product many-to-one, qua
 | POST | /api/orders/{id}/cancel | | 200 | 404, 409 (already cancelled) |
 
 After Q3, every `/api/**` endpoint except `/api/auth/**` requires a token; `/r/**`, Swagger UI and the
-H2 console stay public. Earlier tests get `@WithMockUser`.
+H2 console stay public. The H2 console is off unless `H2_CONSOLE_ENABLED=true` (it would let anyone
+edit the database, including roles). Earlier tests get `@WithMockUser`.
 
 ## Business rules
 - Errors: always `{"status","title","detail"}` (+ `errors` per field for validation), including a
